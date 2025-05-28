@@ -10,12 +10,10 @@ public class Room {
     protected BigDecimal roomPrice;
     protected BigDecimal additionalFee;
     protected String status;
-    
-    // Constructors
-    public Room() {}
+
     
     public Room(String roomNumber, String roomType, int bedCount, BigDecimal roomPrice) {
-        this.roomNumber = roomNumber;
+        this.roomNumber = roomNumber;       
         this.roomType = roomType;
         this.bedCount = bedCount;
         this.roomPrice = roomPrice;
@@ -53,6 +51,20 @@ public class Room {
     public String toString() {
         return String.format("%s (%s) - %d beds", roomNumber, roomType, bedCount);
     }
+    public int getCapacity() {
+        return bedCount;
+    }
 
+    public String getType() {
+        return roomType;
+    }
 
+    public int getOccupancy() {
+        // TODO: Implement this method to return actual occupancy
+        return 0;
+    }
+
+    public BigDecimal getMonthlyFee() {
+        return getTotalPrice();
+    }
 }

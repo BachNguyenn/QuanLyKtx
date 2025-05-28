@@ -1,6 +1,7 @@
 package model;
 
 public enum FeeType {
+    ROOM_FEE("Room Fee"),
     ELECTRICITY("Electricity"),
     WATER("Water"),
     CLEANING("Cleaning"),
@@ -17,3 +18,6 @@ public enum FeeType {
         return displayName;
     }
 }
+
+
+

@@ -9,25 +9,20 @@ public class Student {
     private LocalDate dateOfBirth;
     private String gender;
     private String phoneNumber;
-    private String email;
+    private String Gmail;
     private String hometown;
     private int roomId;
-    private LocalDate enrollmentDate;
     private String status;
-    
-    // Constructors
-    public Student() {}
-    
-    public Student(String studentCode, String fullName, LocalDate dateOfBirth, 
-                   String gender, String phoneNumber, String email, String hometown) {
+
+    public Student(String studentCode, String fullName, LocalDate dateOfBirth,
+                   String gender, String phoneNumber, String Gmail, String hometown) {
         this.studentCode = studentCode;
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
         this.phoneNumber = phoneNumber;
-        this.email = email;
+        this.Gmail = Gmail;
         this.hometown = hometown;
-        this.enrollmentDate = LocalDate.now();
         this.status = "ACTIVE";
     }
     
@@ -50,18 +45,15 @@ public class Student {
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getGmail() { return Gmail; }
+    public void setGmail(String Gmail) { this.Gmail = Gmail; }
     
     public String getHometown() { return hometown; }
     public void setHometown(String hometown) { this.hometown = hometown; }
     
     public int getRoomId() { return roomId; }
     public void setRoomId(int roomId) { this.roomId = roomId; }
-    
-    public LocalDate getEnrollmentDate() { return enrollmentDate; }
-    public void setEnrollmentDate(LocalDate enrollmentDate) { this.enrollmentDate = enrollmentDate; }
-    
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     

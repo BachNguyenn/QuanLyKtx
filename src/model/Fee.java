@@ -13,11 +13,8 @@ public class Fee {
     private String paymentStatus;
     private LocalDate dueDate;
     private LocalDate paymentDate;
-    private LocalDate billingMonth;
     private String description;
-    
-    // Constructors
-    public Fee() {}
+
     
     public Fee(String feeCode, int studentId, FeeType feeType, BigDecimal amount, LocalDate dueDate) {
         this.feeCode = feeCode;
@@ -27,7 +24,6 @@ public class Fee {
         this.dueDate = dueDate;
         this.paymentMethod = "CASH";
         this.paymentStatus = "PENDING";
-        this.billingMonth = LocalDate.now().withDayOfMonth(1);
     }
     
     // Getters and Setters
@@ -57,12 +53,22 @@ public class Fee {
     
     public LocalDate getPaymentDate() { return paymentDate; }
     public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
-    
-    public LocalDate getBillingMonth() { return billingMonth; }
-    public void setBillingMonth(LocalDate billingMonth) { this.billingMonth = billingMonth; }
-    
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    
+    public String getType() {
+        return feeType.getDisplayName();
+    }
+
+    public String getStatus() {
+        return paymentStatus;
+    }
+
+    public int getContractId() {
+        // TODO: Implement this method to return actual contract ID if needed
+        return 0;
+    }
     
     @Override
     public String toString() {

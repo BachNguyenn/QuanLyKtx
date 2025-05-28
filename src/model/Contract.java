@@ -14,12 +14,10 @@ public class Contract {
     private String paymentMethod;
     private String contractStatus;
     private BigDecimal depositAmount;
-    
-    // Constructors
-    public Contract() {}
-    
-    public Contract(String contractCode, int studentId, int roomId, 
-                   LocalDate startDate, LocalDate endDate, BigDecimal roomPrice) {
+
+
+    public Contract(String contractCode, int studentId, int roomId,
+                    LocalDate startDate, LocalDate endDate, BigDecimal roomPrice) {
         this.contractCode = contractCode;
         this.studentId = studentId;
         this.roomId = roomId;
@@ -62,8 +60,25 @@ public class Contract {
     public BigDecimal getDepositAmount() { return depositAmount; }
     public void setDepositAmount(BigDecimal depositAmount) { this.depositAmount = depositAmount; }
     
+    public BigDecimal getMonthlyFee() {
+        return roomPrice;
+    }
+
+    public void setMonthlyFee(BigDecimal fee) {
+        this.roomPrice = fee;
+    }
+
+    public String getStatus() {
+        return contractStatus;
+    }
+
+    public void setStatus(String status) {
+        this.contractStatus = status;
+    }
+    
     @Override
     public String toString() {
         return String.format("%s (%s to %s)", contractCode, startDate, endDate);
     }
 }
+
