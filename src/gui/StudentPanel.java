@@ -129,36 +129,6 @@ public class StudentPanel extends JPanel {
         return "Student Management";
     }
 
-    private void addCustomFilters(JPanel filterPanel) {
-        // Status filter
-        JPanel statusFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        statusFilterPanel.add(new JLabel("Status:"));
-        statusFilterCombo = new JComboBox<>(new String[]{"All", "ACTIVE", "INACTIVE", "GRADUATED"});
-        statusFilterPanel.add(statusFilterCombo);
-        filterPanel.add(statusFilterPanel);
-
-        // Room filter
-        JPanel roomFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        roomFilterPanel.add(new JLabel("Room:"));
-        roomFilterCombo = new JComboBox<>(new String[]{"All", "Assigned", "Unassigned"});
-        roomFilterPanel.add(roomFilterCombo);
-        filterPanel.add(roomFilterPanel);
-
-        // Add action listeners
-        statusFilterCombo.addActionListener(e -> performSearch());
-        roomFilterCombo.addActionListener(e -> performSearch());
-    }
-
-    private void addCustomButtons(JPanel buttonPanel) {
-        JButton assignRoomButton = createStyledButton("Assign Room", new Dimension(120, 30));
-        assignRoomButton.setEnabled(false);
-        buttonPanel.add(assignRoomButton);
-        
-        // Store for later use
-        this.assignRoomButton = assignRoomButton;
-        assignRoomButton.addActionListener(e -> assignRoomToStudent());
-    }
-
     private void setupTable() {
         String[] columnNames = {"ID", "Student Code", "Full Name", "Date of Birth",
                 "Gender", "Phone Number", "Gmail", "Hometown", "Room ID", "Status"};
