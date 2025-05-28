@@ -2,11 +2,8 @@
 
 <div align="center">
   <img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white" alt="Java"/>
+  <img src="https://img.shields.io/badge/Swing-GUI-yellow?style=for-the-badge" alt="Swing"/>
   <img src="https://img.shields.io/badge/JUnit-25A162?style=for-the-badge&logo=junit5&logoColor=white" alt="JUnit"/>
-  <img src="https://img.shields.io/badge/MVC-Architecture-blue?style=for-the-badge" alt="MVC"/>
-  <br/>
-  <img src="https://img.shields.io/badge/OOP-Object%20Oriented-orange?style=for-the-badge" alt="OOP"/>
-  <img src="https://img.shields.io/badge/GUI-Swing-yellow?style=for-the-badge" alt="GUI"/>
 </div>
 
 ## 📝 Tổng Quan
@@ -18,138 +15,135 @@
 </div>
 
 ### 🎯 Mục Tiêu
-> Xây dựng một hệ thống quản lý ký túc xá hiện đại, giúp tự động hóa và tối ưu hóa các quy trình quản lý, nâng cao hiệu quả làm việc và trải nghiệm người dùng.
+> Xây dựng hệ thống quản lý ký túc xá với giao diện đồ họa, giúp quản lý thông tin sinh viên, phòng ở, hợp đồng và phí một cách hiệu quả.
 
 ### 📋 Giới Thiệu
-Đây là hệ thống quản lý ký túc xá được phát triển như một phần của học phần Lập Trình Hướng Đối Tượng (Học kỳ 3, 2025) bởi Nhóm 9, K17. Dự án này được xây dựng với mục đích:
+Đây là hệ thống quản lý ký túc xá được phát triển như một phần của học phần Lập Trình Hướng Đối Tượng (Học kỳ 3, 2025) bởi Nhóm 9, K17. Dự án này được xây dựng với các đặc điểm:
 
-- 🎓 **Học Tập**: Áp dụng kiến thức OOP vào thực tế
-- 🏗️ **Thực Tiễn**: Giải quyết bài toán quản lý thực tế
-- 🔄 **Hiệu Quả**: Tối ưu hóa quy trình quản lý KTX
-- 🤝 **Tiện Lợi**: Cung cấp giao diện thân thiện với người dùng
-
-### 🌟 Điểm Nổi Bật
-1. **Thiết Kế Hướng Đối Tượng**
-   - Áp dụng 4 tính chất OOP
-   - Sử dụng các Design Pattern phù hợp
-   - Code có tính mở rộng cao
-
-2. **Giao Diện Người Dùng**
-   - GUI thân thiện, dễ sử dụng
-   - Responsive design
-   - Hỗ trợ đa ngôn ngữ (Việt - Anh)
-
-3. **Tính Năng Quản Lý**
-   - Quản lý thông tin sinh viên toàn diện
-   - Theo dõi hợp đồng và thanh toán
-   - Báo cáo và thống kê chi tiết
-
-4. **Bảo Mật & Hiệu Suất**
-   - Phân quyền người dùng
-   - Mã hóa dữ liệu nhạy cảm
-   - Tối ưu hiệu suất xử lý
+- 🎓 **Công nghệ**: Java Swing, JUnit
+- 🏗️ **Kiến trúc**: Hướng đối tượng, Thread-safe
+- 🔄 **Dữ liệu**: Lưu trữ local với file text
+- 🤝 **Giao diện**: GUI thân thiện người dùng
 
 ## ✨ Tính Năng
+
 ### 👥 Quản Lý Sinh Viên
-- 📝 Thêm, cập nhật và xem thông tin sinh viên
-- 📊 Theo dõi chi tiết sinh viên (Mã số, họ tên, thông tin liên lạc, v.v.)
+- 📝 CRUD thông tin sinh viên (mã số, họ tên, ngày sinh, giới tính, ...)
+- 🏠 Phân phòng cho sinh viên
+- 📊 Theo dõi trạng thái sinh viên (ACTIVE, INACTIVE, GRADUATED)
 
 ### 🏠 Quản Lý Phòng
-- 🔄 Phân bổ và theo dõi phòng
-- 📋 Quản lý các loại phòng và sức chứa
-- 🔍 Theo dõi tình trạng phòng trống
+- 🔄 Quản lý thông tin phòng (mã phòng, loại phòng, sức chứa, giá)
+- 📋 Theo dõi tình trạng phòng (còn trống/đã đầy)
+- 🔍 Tìm kiếm phòng theo nhiều tiêu chí
 
 ### 📄 Quản Lý Hợp Đồng
 - ✍️ Tạo và quản lý hợp đồng thuê phòng
-- ⏱️ Theo dõi thời hạn và điều khoản hợp đồng
+- ⏱️ Theo dõi thời hạn hợp đồng
+- 💰 Quản lý giá thuê phòng
 
 ### 💰 Quản Lý Phí
-- 💵 Xử lý các loại phí (phí phòng, v.v.)
+- 💵 Quản lý các loại phí (phí phòng, phí dịch vụ)
 - 📅 Theo dõi hạn thanh toán
-- 🔄 Xử lý thanh toán
+- 🔄 Cập nhật trạng thái thanh toán
 
 ## 🎯 Các Nguyên Lý OOP Được Áp Dụng
 
 ### 1. 🔒 Tính Đóng Gói (Encapsulation)
-- Access modifiers (private, protected, public)
-- Getter và setter cho các thuộc tính
-- Bảo vệ dữ liệu thông qua interface
+- Private fields với getters/setters
+- Validation trong setters
+- Access modifiers phù hợp cho từng thành phần
 
 ### 2. 🔄 Tính Kế Thừa (Inheritance)
-- Các lớp phí kế thừa từ lớp cơ sở Fee
-- Tái sử dụng mã nguồn và mở rộng chức năng
+- Kế thừa từ các lớp cơ sở của Swing (JPanel, JFrame)
+- Tái sử dụng code cho các panel tương tự
 
 ### 3. 🔄 Tính Đa Hình (Polymorphism)
-- Method overriding trong các lớp con
-- Interface implementation
-- Dynamic binding trong runtime
+- Override các phương thức từ lớp cha
+- Xử lý sự kiện đa dạng trong GUI
+- Interface implementation cho các thành phần
 
 ### 4. 🎨 Tính Trừu Tượng (Abstraction)
-- Abstract classes và interfaces
+- Thiết kế interface rõ ràng
 - Che giấu chi tiết triển khai
-- Interface đơn giản cho người dùng
+- Tách biệt logic nghiệp vụ và giao diện
 
-## 🏗️ Design Patterns
+## 🏗️ Kiến Trúc Hệ Thống
 
-### 1. 🔑 Singleton Pattern
-- DataStorage với một instance duy nhất
-- Quản lý truy cập tập trung vào dữ liệu
+### 1. 🗃️ Mô Hình Dữ Liệu
+- **Entities**: 
+  - `Student`: Thông tin sinh viên
+  - `Room`: Thông tin phòng
+  - `Contract`: Hợp đồng thuê phòng
+  - `Fee`: Quản lý phí
 
-### 2. 🏛️ MVC Pattern
-- **Model**: Các lớp đối tượng (Student, Room, Contract, Fee)
-- **View**: Giao diện người dùng trong package gui
-- **Controller**: Xử lý logic nghiệp vụ
+### 2. 🎨 Giao Diện (GUI)
+- **Main Components**:
+  - `MainFrame`: Cửa sổ chính
+  - `StudentPanel`: Quản lý sinh viên
+  - `RoomPanel`: Quản lý phòng
+  - `ContractPanel`: Quản lý hợp đồng
+  - `FeePanel`: Quản lý phí
+
+### 3. 🔧 Utility
+- **DataStorage**: 
+  - Singleton pattern
+  - Thread-safe với ConcurrentHashMap
+  - Atomic counters cho ID
+  - Lưu trữ và đọc dữ liệu từ file
 
 ## 📁 Cấu Trúc Dự Án
 ```
 src/
-├── 📂 main/       # Điểm vào chương trình
-├── 📂 model/      # Các lớp đối tượng
-├── 📂 util/       # Các lớp tiện ích
+├── 📂 main/       # Entry point
+├── 📂 model/      # Các entity classes
 ├── 📂 gui/        # Giao diện người dùng
-└── 📂 test/       # Unit test
+├── 📂 util/       # DataStorage và utilities
+└── 📂 test/       # Unit tests
 ```
 
-## 🛠️ Thông Tin Kỹ Thuật
-- **Ngôn ngữ**: Java ☕
-- **Testing**: JUnit 🧪
-- **Database**: In-memory 💾
-- **Kiến trúc**: MVC 🏗️
+## 🛠️ Công Nghệ Sử Dụng
+- **Java**: JDK 8+
+- **GUI**: Java Swing
+- **Testing**: JUnit 4
+- **Build Tool**: Maven
+- **Storage**: File-based (txt)
 
 ## 📋 Yêu Cầu Hệ Thống
 - ☕ JDK 8 trở lên
 - 💻 IDE hỗ trợ Java (Eclipse, IntelliJ IDEA, NetBeans)
-- 📦 Maven hoặc Gradle (tùy chọn)
+- 💾 Ít nhất 512MB RAM
+- 📊 Độ phân giải màn hình tối thiểu 1280x720
 
 ## 🚀 Hướng Dẫn Cài Đặt
 
 1️⃣ Clone repository
 ```bash
-git clone [URL của repository]
+git clone https://github.com/BachNguyenn/quanlyktx.git
 ```
 
-2️⃣ Mở dự án trong IDE Java  
+2️⃣ Mở dự án trong IDE  
 3️⃣ Build dự án  
-4️⃣ Chạy ứng dụng
+4️⃣ Chạy file Main trong package main
 
 ## 🧪 Kiểm Thử
 Dự án bao gồm các unit test toàn diện:
 
 📝 **Test Classes**:
 - `DataStorageTest`: Kiểm thử lưu trữ dữ liệu
-- `StudentTest`: Kiểm thử quản lý sinh viên
-- `RoomTest`: Kiểm thử quản lý phòng
-- `ContractTest`: Kiểm thử quản lý hợp đồng
-- `FeeTest`: Kiểm thử quản lý phí
+- `StudentTest`: Kiểm thử model Student
+- `RoomTest`: Kiểm thử model Room
+- `ContractTest`: Kiểm thử model Contract
+- `FeeTest`: Kiểm thử model Fee
 
 ## 👥 Thành Viên
 ### Nhóm 9 - K17
-- [Danh sách thành viên]
+- Nguyễn Tùng Bách - K17 CNTTVJ tại Đại học Phenikaa
 
 ## 📜 Giấy Phép
-> Dự án này là một phần của chương trình học tại [PHENIKAA UNIVERSITY].
+> Dự án này là một phần của chương trình học tại PHENIKAA UNIVERSITY.
 
 ---
 <div align="center">
-  <i>Developed with ❤️ by Group 9</i>
+  <i>Developed with ❤️ by BachNguyenn</i>
 </div> 
