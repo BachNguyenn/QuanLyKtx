@@ -192,7 +192,7 @@ public class StudentPanel extends JPanel {
                     student.getDateOfBirth(),
                     student.getGender(),
                     student.getPhoneNumber(),
-                    student.getGmail(),
+                    student.getEmail(),
                     student.getHometown(),
                     student.getRoomId() == 0 ? "Not Assigned" : student.getRoomId(),
                     student.getStatus()
@@ -213,7 +213,7 @@ public class StudentPanel extends JPanel {
             boolean matchesSearch = searchText.isEmpty() ||
                     student.getFullName().toLowerCase().contains(searchText) ||
                     student.getStudentCode().toLowerCase().contains(searchText) ||
-                    student.getGmail().toLowerCase().contains(searchText);
+                    student.getEmail().toLowerCase().contains(searchText);
 
             boolean matchesStatus = "All".equals(statusFilter) ||
                     student.getStatus().equals(statusFilter);
@@ -230,7 +230,7 @@ public class StudentPanel extends JPanel {
                         student.getDateOfBirth(),
                         student.getGender(),
                         student.getPhoneNumber(),
-                        student.getGmail(),
+                        student.getEmail(),
                         student.getHometown(),
                         student.getRoomId() == 0 ? "Not Assigned" : student.getRoomId(),
                         student.getStatus()
@@ -580,7 +580,7 @@ public class StudentPanel extends JPanel {
             dateOfBirthField.setText(student.getDateOfBirth().toString());
             genderCombo.setSelectedItem(student.getGender());
             phoneField.setText(student.getPhoneNumber());
-            emailField.setText(student.getGmail());
+            emailField.setText(student.getEmail());
             hometownField.setText(student.getHometown());
             statusCombo.setSelectedItem(student.getStatus());
         }
@@ -662,7 +662,7 @@ public class StudentPanel extends JPanel {
                 currentStudent.setDateOfBirth(dateOfBirth);
                 currentStudent.setGender((String) genderCombo.getSelectedItem());
                 currentStudent.setPhoneNumber(phoneField.getText().trim());
-                currentStudent.setGmail(emailField.getText().trim());
+                currentStudent.setEmail(emailField.getText().trim());
                 currentStudent.setHometown(hometownField.getText().trim());
                 currentStudent.setStatus((String) statusCombo.getSelectedItem());
 
@@ -700,8 +700,8 @@ public class StudentPanel extends JPanel {
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titlePanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Status panel
-        JPanel statusPanel = new JPanel();
+        // Status panel - now aligned to the right
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         statusPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createEmptyBorder(5, 0, 0, 0),
             BorderFactory.createCompoundBorder(
@@ -726,7 +726,7 @@ public class StudentPanel extends JPanel {
                 break;
         }
         statusPanel.add(statusLabel);
-        titlePanel.add(statusPanel, BorderLayout.SOUTH);
+        titlePanel.add(statusPanel, BorderLayout.EAST);
 
         // Content panel
         JPanel contentPanel = new JPanel();
@@ -764,7 +764,7 @@ public class StudentPanel extends JPanel {
         cgbc.anchor = GridBagConstraints.WEST;
 
         addDetailRow(contactPanel, cgbc, 0, "Phone Number:", student.getPhoneNumber());
-        addDetailRow(contactPanel, cgbc, 1, "Email:", student.getGmail());
+        addDetailRow(contactPanel, cgbc, 1, "Email:", student.getEmail());
         addDetailRow(contactPanel, cgbc, 2, "Hometown:", student.getHometown());
 
         contentPanel.add(contactPanel);

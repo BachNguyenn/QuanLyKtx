@@ -28,7 +28,7 @@ public class LoginFrame extends JFrame {
 
     public LoginFrame() {
         DataStorage.getInstance();
-        setTitle("Hệ thống Quản lý Ký túc xá");
+        setTitle("Dormitory Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         
@@ -44,11 +44,11 @@ public class LoginFrame extends JFrame {
         titlePanel.setBackground(Color.WHITE);
         
         // Title
-        JLabel titleLabel = new JLabel("ĐĂNG NHẬP HỆ THỐNG");
+        JLabel titleLabel = new JLabel("SYSTEM LOGIN");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        JLabel subtitleLabel = new JLabel("QUẢN LÝ KÝ TÚC XÁ PHENIKAA");
+        JLabel subtitleLabel = new JLabel("PHENIKAA DORMITORY MANAGEMENT");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
@@ -66,13 +66,13 @@ public class LoginFrame extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
 
         // Username field
-        JLabel usernameLabel = new JLabel("Tài khoản:");
+        JLabel usernameLabel = new JLabel("Username:");
         usernameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         usernameField = new JTextField(20);
         styleTextField(usernameField);
 
         // Password field
-        JLabel passwordLabel = new JLabel("Mật khẩu:");
+        JLabel passwordLabel = new JLabel("Password:");
         passwordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         passwordField = new JPasswordField(20);
         styleTextField(passwordField);
@@ -94,8 +94,8 @@ public class LoginFrame extends JFrame {
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Color.WHITE);
 
-        loginButton = new JButton("Đăng nhập");
-        cancelButton = new JButton("Hủy");
+        loginButton = new JButton("Login");
+        cancelButton = new JButton("Cancel");
         
         styleButton(loginButton);
         styleButton(cancelButton);
@@ -143,8 +143,8 @@ public class LoginFrame extends JFrame {
                     mainFrame.setVisible(true);
                 } else {
                     JOptionPane.showMessageDialog(LoginFrame.this,
-                        "Tài khoản hoặc mật khẩu không chính xác!",
-                        "Lỗi đăng nhập",
+                        "Invalid username or password!",
+                        "Login Error",
                         JOptionPane.ERROR_MESSAGE);
                     passwordField.setText("");
                 }
@@ -158,6 +158,4 @@ public class LoginFrame extends JFrame {
     private boolean validateLogin(String username, String password) {
         return username.equals("admin") && password.equals("admin");
     }
-
-    
 }

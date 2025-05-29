@@ -3,22 +3,22 @@ package model;
 import java.math.BigDecimal;
 
 public class Room {
-    protected int roomId;
-    protected String roomNumber;
-    protected String roomType;
-    protected int bedCount;
-    protected BigDecimal roomPrice;
-    protected BigDecimal additionalFee;
-    protected String status;
+    private int roomId;
+    private String roomNumber;
+    private int bedCount;
+    private BigDecimal roomPrice;
+    private String status;
+    private int currentOccupancy;
 
-    
-    public Room(String roomNumber, String roomType, int bedCount, BigDecimal roomPrice) {
-        this.roomNumber = roomNumber;       
-        this.roomType = roomType;
+    public Room(String roomNumber, int bedCount, BigDecimal roomPrice) {
+        if (bedCount != 4 && bedCount != 8) {
+            throw new IllegalArgumentException("Room must be either 4-person or 8-person");
+        }
+        this.roomNumber = roomNumber;
         this.bedCount = bedCount;
         this.roomPrice = roomPrice;
-        this.additionalFee = BigDecimal.ZERO;
         this.status = "AVAILABLE";
+        this.currentOccupancy = 0;
     }
     
     // Getters and Setters
@@ -28,43 +28,77 @@ public class Room {
     public String getRoomNumber() { return roomNumber; }
     public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
     
-    public String getRoomType() { return roomType; }
-    public void setRoomType(String roomType) { this.roomType = roomType; }
-    
     public int getBedCount() { return bedCount; }
-    public void setBedCount(int bedCount) { this.bedCount = bedCount; }
     
     public BigDecimal getRoomPrice() { return roomPrice; }
     public void setRoomPrice(BigDecimal roomPrice) { this.roomPrice = roomPrice; }
     
-    public BigDecimal getAdditionalFee() { return additionalFee; }
-    public void setAdditionalFee(BigDecimal additionalFee) { this.additionalFee = additionalFee; }
-    
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     
-    public BigDecimal getTotalPrice() {
-        return roomPrice.add(additionalFee);
+    public int getCurrentOccupancy() {
+        return currentOccupancy;
+    }
+    
+    public void setCurrentOccupancy(int occupancy) {
+        this.currentOccupancy = occupancy;
+        updateStatus();
+    }
+    
+    public void incrementOccupancy() {
+        if (currentOccupancy < bedCount) {
+            currentOccupancy++;
+            updateStatus();
+        }
+    }
+    
+    public void decrementOccupancy() {
+        if (currentOccupancy > 0) {
+            currentOccupancy--;
+            updateStatus();
+        }
+    }
+    
+    private void updateStatus() {
+        if (currentOccupancy == 0) {
+            status = "AVAILABLE";
+        } else if (currentOccupancy == bedCount) {
+            status = "FULL";
+        } else {
+            status = "OCCUPIED";
+        }
+    }
+    
+    public boolean hasAvailableBeds() {
+        return currentOccupancy < bedCount;
+    }
+    
+    public int getAvailableBeds() {
+        return bedCount - currentOccupancy;
+    }
+    
+    public String getRoomType() {
+        return bedCount + "-Person";
+    }
+    
+    public int getCapacity() {
+        return bedCount;
+    }
+    
+    public BigDecimal getMonthlyFee() {
+        return roomPrice;
     }
     
     @Override
     public String toString() {
-        return String.format("%s (%s) - %d beds", roomNumber, roomType, bedCount);
-    }
-    public int getCapacity() {
-        return bedCount;
+        return "Room " + roomNumber + " (" + bedCount + " beds)";
     }
 
-    public String getType() {
-        return roomType;
+    public BigDecimal getTotalPrice() {
+        return roomPrice;
     }
 
-    public int getOccupancy() {
-        // TODO: Implement this method to return actual occupancy
-        return 0;
-    }
-
-    public BigDecimal getMonthlyFee() {
-        return getTotalPrice();
+    public BigDecimal getAdditionalFee() {
+        return BigDecimal.ZERO;
     }
 }

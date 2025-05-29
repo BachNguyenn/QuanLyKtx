@@ -9,19 +9,19 @@ public class Student {
     private LocalDate dateOfBirth;
     private String gender;
     private String phoneNumber;
-    private String Gmail;
+    private String email;
     private String hometown;
     private int roomId;
     private String status;
 
     public Student(String studentCode, String fullName, LocalDate dateOfBirth,
-                   String gender, String phoneNumber, String Gmail, String hometown) {
+                   String gender, String phoneNumber, String email, String hometown) {
         this.studentCode = studentCode;
         this.fullName = fullName;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
         this.phoneNumber = phoneNumber;
-        this.Gmail = Gmail;
+        this.email = email;
         this.hometown = hometown;
         this.status = "ACTIVE";
     }
@@ -45,8 +45,8 @@ public class Student {
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     
-    public String getGmail() { return Gmail; }
-    public void setGmail(String Gmail) { this.Gmail = Gmail; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
     
     public String getHometown() { return hometown; }
     public void setHometown(String hometown) { this.hometown = hometown; }

@@ -18,7 +18,7 @@
 > Xây dựng hệ thống quản lý ký túc xá với giao diện đồ họa, giúp quản lý thông tin sinh viên, phòng ở, hợp đồng và phí một cách hiệu quả.
 
 ### 📋 Giới Thiệu
-Đây là hệ thống quản lý ký túc xá được phát triển như một phần của học phần Lập Trình Hướng Đối Tượng (Học kỳ 3, 2025) bởi Nhóm 9, K17. Dự án này được xây dựng với các đặc điểm:
+Đây là hệ thống quản lý ký túc xá được phát triển như một phần của học phần Lập Trình Hướng Đối Tượng (Học kỳ 3, 2025). Dự án này được xây dựng với các đặc điểm:
 
 - 🎓 **Công nghệ**: Java Swing, JUnit
 - 🏗️ **Kiến trúc**: Hướng đối tượng, Thread-safe
@@ -34,7 +34,7 @@
 
 ### 🏠 Quản Lý Phòng
 - 🔄 Quản lý thông tin phòng (mã phòng, loại phòng, sức chứa, giá)
-- 📋 Theo dõi tình trạng phòng (còn trống/đã đầy)
+- 📋 Theo dõi tình trạng phòng (AVAILABLE, OCCUPIED, FULL)
 - 🔍 Tìm kiếm phòng theo nhiều tiêu chí
 
 ### 📄 Quản Lý Hợp Đồng
@@ -43,9 +43,23 @@
 - 💰 Quản lý giá thuê phòng
 
 ### 💰 Quản Lý Phí
-- 💵 Quản lý các loại phí (phí phòng, phí dịch vụ)
+- 💵 Quản lý các loại phí:
+  - Phí phòng (ROOM_FEE)
+  - Phí điện (ELECTRICITY)
+  - Phí nước (WATER)
+  - Phí vệ sinh (CLEANING)
+  - Phí internet (INTERNET)
+  - Phí bảo trì (MAINTENANCE)
 - 📅 Theo dõi hạn thanh toán
 - 🔄 Cập nhật trạng thái thanh toán
+
+### 📊 Báo Cáo & Thống Kê
+- 📈 Báo cáo tổng quan tình trạng KTX
+- 📉 Thống kê công suất sử dụng phòng
+- 💹 Báo cáo tài chính (thu/chi)
+- 📋 Báo cáo danh sách sinh viên theo tiêu chí
+- 🔍 Xuất báo cáo theo khoảng thời gian
+- 📑 Hỗ trợ xuất báo cáo PDF/Excel
 
 ## 🎯 Các Nguyên Lý OOP Được Áp Dụng
 
@@ -76,14 +90,20 @@
   - `Room`: Thông tin phòng
   - `Contract`: Hợp đồng thuê phòng
   - `Fee`: Quản lý phí
+  - `Report`: Mô hình báo cáo
+  - `Statistics`: Thống kê số liệu
+  - `FeeType`: Enum các loại phí
 
 ### 2. 🎨 Giao Diện (GUI)
 - **Main Components**:
+  - `LoginFrame`: Màn hình đăng nhập
   - `MainFrame`: Cửa sổ chính
   - `StudentPanel`: Quản lý sinh viên
   - `RoomPanel`: Quản lý phòng
   - `ContractPanel`: Quản lý hợp đồng
   - `FeePanel`: Quản lý phí
+  - `ReportPanel`: Quản lý báo cáo
+  - `StatisticsPanel`: Hiển thị thống kê
 
 ### 3. 🔧 Utility
 - **DataStorage**: 
@@ -94,37 +114,83 @@
 
 ## 📁 Cấu Trúc Dự Án
 ```
-src/
-├── 📂 main/       # Entry point
-├── 📂 model/      # Các entity classes
-├── 📂 gui/        # Giao diện người dùng
-├── 📂 util/       # DataStorage và utilities
-└── 📂 test/       # Unit tests
+project/
+├── 📂 src/
+│   ├── 📂 model/
+│   │   ├── Student.java              # Thông tin sinh viên
+│   │   ├── Room.java                 # Thông tin phòng
+│   │   ├── Contract.java             # Hợp đồng
+│   │   ├── Fee.java                  # Quản lý phí
+│   │   ├── FeeType.java             # Enum loại phí
+│   │   ├── Report.java              # Mô hình báo cáo
+│   │   └── Statistics.java          # Thống kê
+│   ├── 📂 gui/
+│   │   ├── LoginFrame.java          # Màn hình đăng nhập
+│   │   ├── MainFrame.java           # Cửa sổ chính
+│   │   ├── StudentPanel.java        # Giao diện QL sinh viên
+│   │   ├── RoomPanel.java           # Giao diện QL phòng
+│   │   ├── ContractPanel.java       # Giao diện QL hợp đồng
+│   │   ├── FeePanel.java            # Giao diện QL phí
+│   │   ├── ReportPanel.java         # Giao diện báo cáo
+│   │   └── StatisticsPanel.java     # Giao diện thống kê
+│   └── 📂 util/
+│       └── DataStorage.java         # Lưu trữ dữ liệu
+├── 📂 test/
+│   ├── 📂 model/
+│   │   ├── StudentTest.java
+│   │   ├── RoomTest.java
+│   │   ├── ContractTest.java
+│   │   ├── FeeTest.java
+│   │   ├── FeeTypeTest.java
+│   │   ├── ReportTest.java
+│   │   └── StatisticsTest.java
+│   └── 📂 util/
+│       └── DataStorageTest.java
+├── 📂 data/                          # Dữ liệu
+│   ├── students.txt
+│   ├── rooms.txt
+│   ├── contracts.txt
+│   └── fees.txt
+├── 📂 lib/                           # Thư viện
+│   ├── junit-4.13.2.jar
+│   └── hamcrest-core-1.3.jar
+└── 📂 reports/                       # Thư mục chứa báo cáo
+    ├── pdf/
+    └── excel/
 ```
 
 ## 🛠️ Công Nghệ Sử Dụng
-- **Java**: JDK 8+
+- **Java**: JDK 8 trở lên
 - **GUI**: Java Swing
 - **Testing**: JUnit 4
-- **Build Tool**: Maven
 - **Storage**: File-based (txt)
 
 ## 📋 Yêu Cầu Hệ Thống
 - ☕ JDK 8 trở lên
-- 💻 IDE hỗ trợ Java (Eclipse, IntelliJ IDEA, NetBeans)
+- 💻 IDE hỗ trợ Java hoặc chạy trực tiếp từ command line
 - 💾 Ít nhất 512MB RAM
 - 📊 Độ phân giải màn hình tối thiểu 1280x720
 
-## 🚀 Hướng Dẫn Cài Đặt
+## 🚀 Hướng Dẫn Cài Đặt & Chạy
 
 1️⃣ Clone repository
 ```bash
 git clone https://github.com/BachNguyenn/quanlyktx.git
 ```
 
-2️⃣ Mở dự án trong IDE  
-3️⃣ Build dự án  
-4️⃣ Chạy file Main trong package main
+2️⃣ Biên dịch project
+```bash
+javac -d bin -cp "lib/*" src/gui/*.java src/model/*.java src/util/*.java
+```
+
+3️⃣ Chạy chương trình
+```bash
+java -cp "bin;lib/*" gui.LoginFrame
+```
+
+4️⃣ Đăng nhập với tài khoản mặc định
+- Username: admin
+- Password: admin
 
 ## 🧪 Kiểm Thử
 Dự án bao gồm các unit test toàn diện:
@@ -135,9 +201,16 @@ Dự án bao gồm các unit test toàn diện:
 - `RoomTest`: Kiểm thử model Room
 - `ContractTest`: Kiểm thử model Contract
 - `FeeTest`: Kiểm thử model Fee
+- `FeeTypeTest`: Kiểm thử enum FeeType
+- `ReportTest`: Kiểm thử model Report
+- `StatisticsTest`: Kiểm thử model Statistics
+
+Chạy test:
+```bash
+java -cp "bin;lib/*" org.junit.runner.JUnitCore model.FeeTypeTest model.ReportTest model.StatisticsTest model.StudentTest model.RoomTest model.ContractTest model.FeeTest util.DataStorageTest
+```
 
 ## 👥 Thành Viên
-### Nhóm 9 - K17
 - Nguyễn Tùng Bách - K17 CNTTVJ tại Đại học Phenikaa
 
 ## 📜 Giấy Phép
@@ -145,5 +218,5 @@ Dự án bao gồm các unit test toàn diện:
 
 ---
 <div align="center">
-  <i>Developed with ❤️ by BachNguyenn</i>
+  <i>Developed with ❤️</i>
 </div> 

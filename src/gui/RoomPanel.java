@@ -1,8 +1,6 @@
 package gui;
 
 import model.Room;
-import model.ARoom;
-import model.BRoom;
 import util.DataStorage;
 import javax.swing.*;
 import javax.swing.table.*;
@@ -20,8 +18,8 @@ public class RoomPanel extends JPanel {
     private JComboBox<String> filterCombo;
 
     // Form fields
-    private JTextField roomNumberField, bedCountField, roomPriceField, additionalFeeField;
-    private JComboBox<String> roomTypeCombo, statusCombo;
+    private JTextField roomNumberField, bedCountField, roomPriceField;
+    private JComboBox<String> statusCombo;
     private JDialog formDialog;
     private Room currentRoom;
 
@@ -55,7 +53,7 @@ public class RoomPanel extends JPanel {
         // Room type filter
         JPanel typeFilterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         typeFilterPanel.add(new JLabel("Room Type:"));
-        filterCombo = new JComboBox<>(new String[]{"All", "A", "B"});
+        filterCombo = new JComboBox<>(new String[]{"All", "4-Person", "8-Person"});
         typeFilterPanel.add(filterCombo);
         searchFilterPanel.add(typeFilterPanel);
 
@@ -101,7 +99,7 @@ public class RoomPanel extends JPanel {
 
         // Table setup with enhanced styling
         String[] columnNames = {"ID", "Room Number", "Type", "Bed Count", "Occupancy",
-                "Room Price", "Additional Fee", "Total Price", "Status"};
+                "Room Price", "Status"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -111,7 +109,7 @@ public class RoomPanel extends JPanel {
             @Override
             public Class<?> getColumnClass(int column) {
                 if (column == 0) return Integer.class;
-                if (column >= 5 && column <= 7) return Double.class;
+                if (column == 5) return Double.class;
                 return String.class;
             }
         };
@@ -127,13 +125,13 @@ public class RoomPanel extends JPanel {
         roomTable.getTableHeader().setFont(roomTable.getTableHeader().getFont().deriveFont(Font.BOLD));
 
         // Set column widths
-        int[] columnWidths = {50, 100, 60, 80, 80, 100, 100, 100, 100};
+        int[] columnWidths = {50, 100, 80, 80, 80, 100, 100};
         for (int i = 0; i < columnWidths.length; i++) {
             roomTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
         }
 
         // Custom renderer for status column
-        roomTable.getColumnModel().getColumn(8).setCellRenderer(new DefaultTableCellRenderer() {
+        roomTable.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
@@ -169,9 +167,7 @@ public class RoomPanel extends JPanel {
             }
         };
 
-        for (int i = 5; i <= 7; i++) {
-            roomTable.getColumnModel().getColumn(i).setCellRenderer(currencyRenderer);
-        }
+        roomTable.getColumnModel().getColumn(5).setCellRenderer(currencyRenderer);
 
         // Center-align certain columns
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -232,11 +228,6 @@ public class RoomPanel extends JPanel {
             return;
         }
 
-        // Get current occupancy details
-        int currentOccupancy = dataStorage.getCurrentOccupancy(room.getRoomId());
-        long capacity = room.getCapacity();
-        boolean isFull = dataStorage.isRoomFull(roomId);
-
         JDialog viewDialog = new JDialog(mainFrame, "Room Details", true);
         viewDialog.setSize(500, 600);
         viewDialog.setLocationRelativeTo(this);
@@ -253,8 +244,8 @@ public class RoomPanel extends JPanel {
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titlePanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Status panel
-        JPanel statusPanel = new JPanel();
+        // Status panel with color coding
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         statusPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createEmptyBorder(5, 0, 0, 0),
             BorderFactory.createCompoundBorder(
@@ -262,27 +253,32 @@ public class RoomPanel extends JPanel {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
             )
         ));
+
         String status = room.getStatus();
         JLabel statusLabel = new JLabel("Status: " + status);
         statusLabel.setFont(statusLabel.getFont().deriveFont(Font.BOLD));
         
-        // Set status color
+        // Set status color and background
         switch (status) {
             case "AVAILABLE":
                 statusPanel.setBackground(new Color(220, 255, 220)); // Light green
+                statusLabel.setForeground(new Color(0, 100, 0)); // Dark green
                 break;
             case "OCCUPIED":
                 statusPanel.setBackground(new Color(255, 255, 220)); // Light yellow
+                statusLabel.setForeground(new Color(150, 100, 0)); // Dark orange
                 break;
             case "FULL":
                 statusPanel.setBackground(new Color(255, 220, 220)); // Light red
+                statusLabel.setForeground(new Color(150, 0, 0)); // Dark red
                 break;
             case "MAINTENANCE":
                 statusPanel.setBackground(new Color(240, 240, 240)); // Light gray
+                statusLabel.setForeground(Color.GRAY);
                 break;
         }
         statusPanel.add(statusLabel);
-        titlePanel.add(statusPanel, BorderLayout.SOUTH);
+        titlePanel.add(statusPanel, BorderLayout.EAST);
 
         // Content panel
         JPanel contentPanel = new JPanel();
@@ -299,19 +295,16 @@ public class RoomPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Room details with consistent formatting
         addDetailRow(roomDetailsPanel, gbc, 0, "Room ID:", String.valueOf(room.getRoomId()));
         addDetailRow(roomDetailsPanel, gbc, 1, "Room Number:", room.getRoomNumber());
         addDetailRow(roomDetailsPanel, gbc, 2, "Room Type:", room.getRoomType());
-        addDetailRow(roomDetailsPanel, gbc, 3, "Bed Count:", String.valueOf(room.getCapacity()));
+        addDetailRow(roomDetailsPanel, gbc, 3, "Bed Count:", String.valueOf(room.getBedCount()));
         addDetailRow(roomDetailsPanel, gbc, 4, "Room Price:", String.format("$%.2f", room.getRoomPrice()));
-        addDetailRow(roomDetailsPanel, gbc, 5, "Additional Fee:", String.format("$%.2f", room.getAdditionalFee()));
-        addDetailRow(roomDetailsPanel, gbc, 6, "Total Price:", String.format("$%.2f", room.getTotalPrice()));
 
         contentPanel.add(roomDetailsPanel);
         contentPanel.add(Box.createVerticalStrut(10));
 
-        // Occupancy Section
+        // Occupancy Section with Progress Bar
         JPanel occupancyPanel = new JPanel(new GridBagLayout());
         occupancyPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Occupancy Information"),
@@ -320,10 +313,36 @@ public class RoomPanel extends JPanel {
         GridBagConstraints ogbc = new GridBagConstraints();
         ogbc.insets = new Insets(5, 5, 5, 5);
         ogbc.anchor = GridBagConstraints.WEST;
+        ogbc.fill = GridBagConstraints.HORIZONTAL;
 
-        addDetailRow(occupancyPanel, ogbc, 0, "Current Occupancy:", currentOccupancy + " / " + capacity);
-        addDetailRow(occupancyPanel, ogbc, 1, "Available Beds:", String.valueOf(capacity - currentOccupancy));
-        addDetailRow(occupancyPanel, ogbc, 2, "Occupancy Status:", isFull ? "FULL" : currentOccupancy > 0 ? "PARTIALLY OCCUPIED" : "EMPTY");
+        // Occupancy progress bar
+        JProgressBar occupancyBar = new JProgressBar(0, room.getBedCount());
+        occupancyBar.setValue(room.getCurrentOccupancy());
+        occupancyBar.setStringPainted(true);
+        occupancyBar.setString(String.format("%d / %d beds occupied", 
+            room.getCurrentOccupancy(), room.getBedCount()));
+
+        // Set progress bar colors based on occupancy
+        if (room.getCurrentOccupancy() == 0) {
+            occupancyBar.setForeground(new Color(0, 150, 0)); // Dark green for empty
+        } else if (room.getCurrentOccupancy() == room.getBedCount()) {
+            occupancyBar.setForeground(new Color(150, 0, 0)); // Dark red for full
+        } else {
+            occupancyBar.setForeground(new Color(150, 100, 0)); // Dark orange for partially occupied
+        }
+
+        ogbc.gridwidth = 2;
+        occupancyPanel.add(occupancyBar, ogbc);
+        ogbc.gridwidth = 1;
+        ogbc.gridy = 1;
+
+        addDetailRow(occupancyPanel, ogbc, 1, "Current Occupancy:", 
+            String.format("%d / %d", room.getCurrentOccupancy(), room.getBedCount()));
+        addDetailRow(occupancyPanel, ogbc, 2, "Available Beds:", 
+            String.valueOf(room.getAvailableBeds()));
+        addDetailRow(occupancyPanel, ogbc, 3, "Occupancy Status:", 
+            room.getCurrentOccupancy() == 0 ? "Empty" : 
+            room.getCurrentOccupancy() == room.getBedCount() ? "Full" : "Partially Occupied");
 
         contentPanel.add(occupancyPanel);
 
@@ -339,7 +358,6 @@ public class RoomPanel extends JPanel {
         JButton editButton = new JButton("Edit");
         JButton closeButton = new JButton("Close");
 
-        // Set preferred size for buttons
         Dimension buttonSize = new Dimension(100, 30);
         editButton.setPreferredSize(buttonSize);
         closeButton.setPreferredSize(buttonSize);
@@ -353,7 +371,6 @@ public class RoomPanel extends JPanel {
         buttonPanel.add(editButton);
         buttonPanel.add(closeButton);
 
-        // Add all components to main panel
         mainPanel.add(titlePanel, BorderLayout.NORTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -382,25 +399,19 @@ public class RoomPanel extends JPanel {
         List<Room> rooms = dataStorage.getAllRooms();
 
         for (Room room : rooms) {
-            int currentOccupancy = dataStorage.getCurrentOccupancy(room.getRoomId());
-            long capacity = room.getCapacity();
-            String occupancyDisplay = String.format("%d / %d", currentOccupancy, capacity);
-
             Object[] rowData = {
-                    room.getRoomId(),
-                    room.getRoomNumber(),
-                    room.getRoomType(),
-                    room.getBedCount(),
-                    occupancyDisplay,
-                    String.format("$%.2f", room.getRoomPrice()),
-                    String.format("$%.2f", room.getAdditionalFee()),
-                    String.format("$%.2f", room.getTotalPrice()),
-                    room.getStatus()
+                room.getRoomId(),
+                room.getRoomNumber(),
+                room.getRoomType(),
+                room.getBedCount(),
+                String.format("%d / %d", room.getCurrentOccupancy(), room.getBedCount()),
+                String.format("$%.2f", room.getRoomPrice()),
+                room.getStatus()
             };
             tableModel.addRow(rowData);
         }
 
-        // Update button states - disable selection-dependent buttons
+        // Update button states
         editButton.setEnabled(false);
         deleteButton.setEnabled(false);
         viewButton.setEnabled(false);
@@ -432,8 +443,6 @@ public class RoomPanel extends JPanel {
                         room.getBedCount(),
                         occupancyDisplay,
                         String.format("$%.2f", room.getRoomPrice()),
-                        String.format("$%.2f", room.getAdditionalFee()),
-                        String.format("$%.2f", room.getTotalPrice()),
                         room.getStatus()
                 };
                 tableModel.addRow(rowData);
@@ -499,40 +508,51 @@ public class RoomPanel extends JPanel {
 
         // Form fields
         roomNumberField = new JTextField(20);
-        roomTypeCombo = new JComboBox<>(new String[]{"A", "B"});
-        bedCountField = new JTextField(20);
+        JComboBox<String> bedCountCombo = new JComboBox<>(new String[]{"4-Person", "8-Person"});
         roomPriceField = new JTextField(20);
-        additionalFeeField = new JTextField(20);
         statusCombo = new JComboBox<>(new String[]{"AVAILABLE", "OCCUPIED", "FULL", "MAINTENANCE"});
 
         // Add components to form
         addFormField(formPanel, gbc, 0, "Room Number:", roomNumberField);
-        addFormField(formPanel, gbc, 1, "Room Type:", roomTypeCombo);
-        addFormField(formPanel, gbc, 2, "Bed Count:", bedCountField);
-        addFormField(formPanel, gbc, 3, "Room Price:", roomPriceField);
-        addFormField(formPanel, gbc, 4, "Additional Fee:", additionalFeeField);
-        addFormField(formPanel, gbc, 5, "Status:", statusCombo);
+        addFormField(formPanel, gbc, 1, "Room Type:", bedCountCombo);
+        addFormField(formPanel, gbc, 2, "Room Price ($):", roomPriceField);
+        addFormField(formPanel, gbc, 3, "Status:", statusCombo);
 
-        // Add note for A rooms
+        // Room type change listener
+        bedCountCombo.addActionListener(e -> {
+            String selectedType = (String) bedCountCombo.getSelectedItem();
+            // Auto-fill price based on room type
+            if ("4-Person".equals(selectedType)) {
+                roomPriceField.setText("120.00");
+            } else {
+                roomPriceField.setText("80.00");
+            }
+        });
+
+        // Add notes for room types
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 4;
         gbc.gridwidth = 2;
-        JLabel noteLabel = new JLabel("<html><i>Note: A rooms have 10% premium automatically applied</i></html>");
-        noteLabel.setFont(noteLabel.getFont().deriveFont(Font.ITALIC, 11f));
-        formPanel.add(noteLabel, gbc);
+        JPanel notesPanel = new JPanel();
+        notesPanel.setLayout(new BoxLayout(notesPanel, BoxLayout.Y_AXIS));
+        notesPanel.add(new JLabel("<html><i>Notes:</i></html>"));
+        notesPanel.add(new JLabel("<html><i>- 4-Person Room: $120.00/month</i></html>"));
+        notesPanel.add(new JLabel("<html><i>- 8-Person Room: $80.00/month</i></html>"));
+        formPanel.add(notesPanel, gbc);
         gbc.gridwidth = 1;
 
         // Fill form if editing
         if (isEdit) {
             roomNumberField.setText(room.getRoomNumber());
-            roomTypeCombo.setSelectedItem(room.getRoomType());
-            bedCountField.setText(String.valueOf(room.getBedCount()));
+            bedCountCombo.setSelectedItem(room.getRoomType());
             roomPriceField.setText(room.getRoomPrice().toString());
-            additionalFeeField.setText(room.getAdditionalFee().toString());
             statusCombo.setSelectedItem(room.getStatus());
+            bedCountCombo.setEnabled(false); // Cannot change room type after creation
         } else {
-            // Set default values
-            additionalFeeField.setText("0.00");
+            // Set default values for new room
+            bedCountCombo.setSelectedIndex(0); // Default to 4-person room
+            roomPriceField.setText("120.00"); // Default price for 4-person room
+            statusCombo.setSelectedItem("AVAILABLE");
         }
 
         // Button panel
@@ -540,7 +560,70 @@ public class RoomPanel extends JPanel {
         JButton saveButton = new JButton(isEdit ? "Update" : "Save");
         JButton cancelButton = new JButton("Cancel");
 
-        saveButton.addActionListener(e -> saveRoom());
+        saveButton.addActionListener(e -> {
+            try {
+                // Validate fields
+                if (roomNumberField.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(formDialog,
+                            "Please fill in all required fields.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Parse numeric fields
+                BigDecimal roomPrice;
+                String selectedType = (String) bedCountCombo.getSelectedItem();
+                int bedCount = "4-Person".equals(selectedType) ? 4 : 8;
+
+                try {
+                    roomPrice = new BigDecimal(roomPriceField.getText().trim());
+                    if (roomPrice.compareTo(BigDecimal.ZERO) < 0) {
+                        throw new NumberFormatException("Room price must be positive");
+                    }
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(formDialog,
+                            "Invalid room price.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (currentRoom == null) {
+                    // Create a new room
+                    Room newRoom = new Room(roomNumberField.getText().trim(), bedCount, roomPrice);
+                    newRoom.setStatus((String) statusCombo.getSelectedItem());
+
+                    if (!dataStorage.addRoom(newRoom)) {
+                        JOptionPane.showMessageDialog(formDialog,
+                                "Failed to add room.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    mainFrame.updateStatusBar("New room added successfully");
+                } else {
+                    // Update existing room
+                    currentRoom.setRoomNumber(roomNumberField.getText().trim());
+                    currentRoom.setRoomPrice(roomPrice);
+                    currentRoom.setStatus((String) statusCombo.getSelectedItem());
+
+                    if (!dataStorage.updateRoom(currentRoom)) {
+                        JOptionPane.showMessageDialog(formDialog,
+                                "Failed to update room.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    mainFrame.updateStatusBar("Room updated successfully");
+                }
+
+                formDialog.dispose();
+                refreshData();
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(formDialog,
+                        "Error: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         cancelButton.addActionListener(e -> formDialog.dispose());
 
         buttonPanel.add(saveButton);
@@ -563,87 +646,5 @@ public class RoomPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(component, gbc);
         gbc.fill = GridBagConstraints.NONE;
-    }
-
-    private void saveRoom() {
-        try {
-            // Validate fields
-            if (roomNumberField.getText().trim().isEmpty() ||
-                    bedCountField.getText().trim().isEmpty() ||
-                    roomPriceField.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(formDialog,
-                        "Please fill in all required fields.",
-                        "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Parse numeric fields
-            int bedCount;
-            BigDecimal roomPrice, additionalFee;
-
-            try {
-                bedCount = Integer.parseInt(bedCountField.getText().trim());
-                roomPrice = new BigDecimal(roomPriceField.getText().trim());
-                additionalFee = new BigDecimal(additionalFeeField.getText().trim());
-
-                if (bedCount <= 0 || roomPrice.compareTo(BigDecimal.ZERO) < 0 ||
-                        additionalFee.compareTo(BigDecimal.ZERO) < 0) {
-                    throw new NumberFormatException("Values must be positive");
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(formDialog,
-                        "Invalid numeric values. Please enter valid positive numbers.",
-                        "Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            String roomType = (String) roomTypeCombo.getSelectedItem();
-            Room room;
-
-            if (currentRoom == null) {
-                // Create a new room based on type
-                if ("A".equals(roomType)) {
-                    room = new ARoom(roomNumberField.getText().trim(), bedCount, roomPrice, additionalFee);
-                } else {
-                    room = new BRoom(roomNumberField.getText().trim(), bedCount, roomPrice);
-                }
-                room.setStatus((String) statusCombo.getSelectedItem());
-
-                boolean roomAdded = dataStorage.addRoom(room);
-                if (roomAdded) {
-                    mainFrame.updateStatusBar("Room added successfully");
-                } else {
-                    JOptionPane.showMessageDialog(formDialog,
-                            "Failed to add room.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } else {
-                // Update the existing room
-                currentRoom.setRoomNumber(roomNumberField.getText().trim());
-                currentRoom.setRoomType(roomType);
-                currentRoom.setBedCount(bedCount);
-                currentRoom.setRoomPrice(roomPrice);
-                currentRoom.setAdditionalFee(additionalFee);
-                currentRoom.setStatus((String) statusCombo.getSelectedItem());
-
-                if (!dataStorage.updateRoom(currentRoom)) {
-                    JOptionPane.showMessageDialog(formDialog,
-                            "Failed to update room.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                } else {
-                    mainFrame.updateStatusBar("Room updated successfully");
-                }
-            }
-
-            formDialog.dispose();
-            refreshData();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(formDialog,
-                    "Error saving room: " + e.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }

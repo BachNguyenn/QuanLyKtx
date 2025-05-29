@@ -342,8 +342,8 @@ public class FeePanel extends JPanel {
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titlePanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Status panel
-        JPanel statusPanel = new JPanel();
+        // Status panel - now aligned to the right
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         statusPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createEmptyBorder(5, 0, 0, 0),
             BorderFactory.createCompoundBorder(
@@ -370,7 +370,7 @@ public class FeePanel extends JPanel {
                 break;
         }
         statusPanel.add(statusLabel);
-        titlePanel.add(statusPanel, BorderLayout.SOUTH);
+        titlePanel.add(statusPanel, BorderLayout.EAST);
 
         // Content panel
         JPanel contentPanel = new JPanel();
@@ -417,7 +417,7 @@ public class FeePanel extends JPanel {
 
             addDetailRow(studentPanel, sgbc, 0, "Student Name:", student.getFullName());
             addDetailRow(studentPanel, sgbc, 1, "Student Code:", student.getStudentCode());
-            addDetailRow(studentPanel, sgbc, 2, "Email:", student.getGmail());
+            addDetailRow(studentPanel, sgbc, 2, "Email:", student.getEmail());
             addDetailRow(studentPanel, sgbc, 3, "Phone:", student.getPhoneNumber());
             addDetailRow(studentPanel, sgbc, 4, "Room:", 
                 student.getRoomId() != 0 ? "Room " + student.getRoomId() : "Not assigned");

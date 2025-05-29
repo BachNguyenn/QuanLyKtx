@@ -78,7 +78,7 @@ public class Contract {
     
     @Override
     public String toString() {
-        return String.format("%s (%s to %s)", contractCode, startDate, endDate);
+        return String.format("Contract %s (%s to %s)", contractCode, startDate, endDate);
     }
 }
 

@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.io.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,17 +20,20 @@ public class DataStorage {
 
     private static volatile DataStorage instance;
 
-    // Sử dụng ConcurrentHashMap để thread-safe
+    // Using ConcurrentHashMap for thread-safety
     private final Map<Integer, Student> students = new ConcurrentHashMap<>();
     private final Map<Integer, Room> rooms = new ConcurrentHashMap<>();
     private final Map<Integer, Contract> contracts = new ConcurrentHashMap<>();
     private final Map<Integer, Fee> fees = new ConcurrentHashMap<>();
 
-    // Atomic counters cho ID
+    // Atomic counters for IDs
     private final AtomicInteger studentIdCounter = new AtomicInteger(0);
     private final AtomicInteger roomIdCounter = new AtomicInteger(0);
     private final AtomicInteger contractIdCounter = new AtomicInteger(0);
     private final AtomicInteger feeIdCounter = new AtomicInteger(0);
+
+    private List<Report> reports;
+    private AtomicInteger reportIdCounter;
 
     public static DataStorage getInstance() {
         if (instance == null) {
@@ -48,39 +52,12 @@ public class DataStorage {
         if (getAllStudents().isEmpty()) {
             initializeSampleData();
         }
+        reports = Collections.synchronizedList(new ArrayList<>());
+        reportIdCounter = new AtomicInteger(1);
+        loadReports();
     }
 
-    // Khởi tạo thư mục data
-    private void initializeDataDirectory() {
-        File directory = new File(DATA_DIRECTORY);
-        if (!directory.exists()) {
-            if (directory.mkdir()) {
-                System.out.println("Đã tạo thư mục data");
-            } else {
-                showError("Khởi tạo", new Exception("Không thể tạo thư mục data"));
-            }
-        }
-    }
-
-    // Khởi tạo dữ liệu mẫu
-    private void initializeSampleData() {
-        // Thêm phòng mẫu
-        addRoom(new ARoom("A101", 2, new BigDecimal("500"), new BigDecimal("50")));
-        addRoom(new ARoom("A102", 4, new BigDecimal("800"), new BigDecimal("80")));
-        addRoom(new BRoom("B101", 2, new BigDecimal("400")));
-        addRoom(new BRoom("B102", 4, new BigDecimal("600")));
-
-        // Thêm sinh viên mẫu
-        addStudent(new Student("ST001", "Nguyen Van Anh", LocalDate.of(2005, 5, 15),
-                "Female", "0123456789", "anh@gmail.com", "Ho Chi Minh"));
-        addStudent(new Student("ST002", "Vu Thu Hang", LocalDate.of(2004, 9, 20),
-                "Female", "0987654321", "hang@gmail.com", "Ha Noi"));
-        // ... thêm sinh viên mẫu khác
-
-        saveAllData();
-    }
-
-    // Phương thức lấy dữ liệu
+    // Data methods
     public List<Student> getAllStudents() {
         return new ArrayList<>(students.values());
     }
@@ -97,7 +74,7 @@ public class DataStorage {
         return new ArrayList<>(fees.values());
     }
 
-    // Phương thức thêm dữ liệu
+    // Add methods
     public boolean addStudent(Student student) {
         if (student == null) return false;
         try {
@@ -107,7 +84,7 @@ public class DataStorage {
             saveStudents();
             return true;
         } catch (Exception e) {
-            showError("Thêm sinh viên", e);
+            showError("Adding student", e);
             return false;
         }
     }
@@ -121,7 +98,7 @@ public class DataStorage {
             saveRooms();
             return true;
         } catch (Exception e) {
-            showError("Thêm phòng", e);
+            showError("Adding room", e);
             return false;
         }
     }
@@ -135,7 +112,7 @@ public class DataStorage {
             saveContracts();
             return true;
         } catch (Exception e) {
-            showError("Thêm hợp đồng", e);
+            showError("Adding contract", e);
             return false;
         }
     }
@@ -149,12 +126,335 @@ public class DataStorage {
             saveFees();
             return true;
         } catch (Exception e) {
-            showError("Thêm phí", e);
+            showError("Adding fee", e);
             return false;
         }
     }
 
-    // Phương thức cập nhật dữ liệu
+    // Delete methods
+    public boolean deleteStudent(int studentId) {
+        if (!students.containsKey(studentId)) {
+            return false;
+        }
+        try {
+            students.remove(studentId);
+            contracts.values().removeIf(contract -> contract.getStudentId() == studentId);
+            fees.values().removeIf(fee -> fee.getStudentId() == studentId);
+            saveAllData();
+            return true;
+        } catch (Exception e) {
+            showError("Deleting student", e);
+            return false;
+        }
+    }
+
+    public boolean deleteRoom(int roomId) {
+        if (!rooms.containsKey(roomId)) {
+            return false;
+        }
+        try {
+            students.values().stream()
+                    .filter(student -> student.getRoomId() == roomId)
+                    .forEach(student -> student.setRoomId(0));
+            rooms.remove(roomId);
+            contracts.values().removeIf(contract -> contract.getRoomId() == roomId);
+            saveAllData();
+            return true;
+        } catch (Exception e) {
+            showError("Deleting room", e);
+            return false;
+        }
+    }
+
+    public boolean deleteContract(int contractId) {
+        if (!contracts.containsKey(contractId)) {
+            return false;
+        }
+        try {
+            contracts.remove(contractId);
+            saveContracts();
+            return true;
+        } catch (Exception e) {
+            showError("Deleting contract", e);
+            return false;
+        }
+    }
+
+    public boolean deleteFee(int feeId) {
+        if (!fees.containsKey(feeId)) {
+            return false;
+        }
+        try {
+            fees.remove(feeId);
+            saveFees();
+            return true;
+        } catch (Exception e) {
+            showError("Deleting fee", e);
+            return false;
+        }
+    }
+
+    // Load methods
+    private void loadStudents() {
+        List<String> lines = loadFromFile(STUDENTS_FILE);
+        
+        for (String line : lines) {
+            try {
+                String[] parts = line.split(",");
+                if (parts.length == 10) {
+                    Student student = new Student(
+                        parts[1], // studentCode
+                        parts[2], // fullName
+                        LocalDate.parse(parts[3]), // dateOfBirth
+                        parts[4], // gender
+                        parts[5], // phoneNumber
+                        parts[6], // email
+                        parts[7]  // hometown
+                    );
+                    student.setStudentId(Integer.parseInt(parts[0]));
+                    student.setRoomId(Integer.parseInt(parts[8]));
+                    student.setStatus(parts[9]);
+                    students.put(student.getStudentId(), student);
+                }
+            } catch (Exception e) {
+                showError("Loading student data", e);
+            }
+        }
+    }
+
+    private void loadRooms() {
+        List<String> lines = loadFromFile(ROOMS_FILE);
+        rooms.clear();
+        
+        for (String line : lines) {
+            try {
+                String[] parts = line.split(",");
+                if (parts.length >= 7) {
+                    int roomId = Integer.parseInt(parts[0]);
+                    String roomNumber = parts[1];
+                    int bedCount = Integer.parseInt(parts[3]);
+                    BigDecimal roomPrice = new BigDecimal(parts[4]);
+                    int occupancy = parts.length > 5 ? Integer.parseInt(parts[5]) : 0;
+                    String status = parts[parts.length - 1];
+
+                    Room room = new Room(roomNumber, bedCount, roomPrice);
+                    room.setRoomId(roomId);
+                    room.setCurrentOccupancy(occupancy);
+                    room.setStatus(status);
+                    rooms.put(roomId, room);
+                    
+                    if (roomId > roomIdCounter.get()) {
+                        roomIdCounter.set(roomId);
+                    }
+                }
+            } catch (Exception e) {
+                showError("Loading room data", e);
+            }
+        }
+    }
+
+    private void loadContracts() {
+        List<String> lines = loadFromFile(CONTRACTS_FILE);
+        
+        for (String line : lines) {
+            try {
+                String[] parts = line.split(",");
+                if (parts.length == 10) {
+                    Contract contract = new Contract(
+                        parts[1], // contractCode
+                        Integer.parseInt(parts[2]), // studentId
+                        Integer.parseInt(parts[3]), // roomId
+                        LocalDate.parse(parts[4]), // startDate
+                        LocalDate.parse(parts[5]), // endDate
+                        new BigDecimal(parts[6]) // roomPrice
+                    );
+                    contract.setContractId(Integer.parseInt(parts[0]));
+                    contract.setPaymentMethod(parts[7]);
+                    contract.setContractStatus(parts[8]);
+                    contract.setDepositAmount(new BigDecimal(parts[9]));
+                    contracts.put(contract.getContractId(), contract);
+                }
+            } catch (Exception e) {
+                showError("Loading contract data", e);
+            }
+        }
+    }
+
+    private void loadFees() {
+        List<String> lines = loadFromFile(FEES_FILE);
+        
+        for (String line : lines) {
+            try {
+                String[] parts = line.split(",");
+                if (parts.length == 10) {
+                    Fee fee = new Fee(
+                        parts[1], // feeCode
+                        Integer.parseInt(parts[2]), // studentId
+                        FeeType.valueOf(parts[3]), // feeType
+                        new BigDecimal(parts[4]), // amount
+                        LocalDate.parse(parts[7]) // dueDate
+                    );
+                    fee.setFeeId(Integer.parseInt(parts[0]));
+                    fee.setPaymentMethod(parts[5]);
+                    fee.setPaymentStatus(parts[6]);
+                    
+                    if (!"null".equals(parts[8])) {
+                        fee.setPaymentDate(LocalDate.parse(parts[8]));
+                    }
+                    
+                    if (!"null".equals(parts[9])) {
+                        fee.setDescription(parts[9].replace(";;", ","));
+                    }
+                    
+                    fees.put(fee.getFeeId(), fee);
+                }
+            } catch (Exception e) {
+                showError("Loading fee data", e);
+            }
+        }
+    }
+
+    // File operations
+    private void saveToFile(String fileName, List<String> data) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_DIRECTORY + "/" + fileName))) {
+            for (String line : data) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            showError("Saving file " + fileName, e);
+        }
+    }
+
+    private List<String> loadFromFile(String fileName) {
+        List<String> data = new ArrayList<>();
+        File file = new File(DATA_DIRECTORY + "/" + fileName);
+        
+        if (!file.exists()) {
+            return data;
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                data.add(line);
+            }
+        } catch (IOException e) {
+            showError("Reading file " + fileName, e);
+        }
+        
+        return data;
+    }
+
+    // Update counters
+    private void updateCounters() {
+        studentIdCounter.set(students.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
+        roomIdCounter.set(rooms.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
+        contractIdCounter.set(contracts.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
+        feeIdCounter.set(fees.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
+    }
+
+    private void loadAllData() {
+        loadStudents();
+        loadRooms();
+        loadContracts();
+        loadFees();
+        updateCounters();
+    }
+
+    // Error handling
+    private void showError(String operation, Exception e) {
+        String message = String.format("Error during %s: %s", operation, e.getMessage());
+        System.err.println(message);
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    // Initialize data directory
+    private void initializeDataDirectory() {
+        File directory = new File(DATA_DIRECTORY);
+        if (!directory.exists()) {
+            if (directory.mkdir()) {
+                System.out.println("Data directory created successfully");
+            } else {
+                showError("Initialization", new Exception("Could not create data directory"));
+            }
+        }
+    }
+
+    // Initialize sample data
+    private void initializeSampleData() {
+        // Clear existing data
+        students.clear();
+        rooms.clear();
+        contracts.clear();
+        fees.clear();
+
+        // Reset counters
+        studentIdCounter.set(0);
+        roomIdCounter.set(0);
+        contractIdCounter.set(0);
+        feeIdCounter.set(0);
+
+        // Add sample rooms with USD prices
+        addRoom(new Room("P401", 4, new BigDecimal("120.00"))); // 4-person room
+        addRoom(new Room("P402", 4, new BigDecimal("120.00"))); // 4-person room
+        addRoom(new Room("P801", 8, new BigDecimal("80.00"))); // 8-person room
+        addRoom(new Room("P802", 8, new BigDecimal("80.00"))); // 8-person room
+
+        // Add sample students
+        addStudent(new Student("ST001", "Nguyen Van A", LocalDate.of(2005, 5, 15),
+                "Male", "0123456789", "A@email.com", "Ha Noi"));
+        addStudent(new Student("ST002", "Nguyen Van B", LocalDate.of(2004, 9, 20),
+                "Male", "0987654321", "B@email.com", "Hai Phong"));
+        addStudent(new Student("ST003", "Nguyen Thi C", LocalDate.of(2005, 4, 25),
+                "Female", "0916627268", "C@email.com", "Ho Chi Minh"));
+        addStudent(new Student("ST004", "Nguyen Thi D", LocalDate.of(2004, 8, 12),
+                "Female", "0945123456", "D@email.com", "Nghe An"));
+
+        // Add sample contracts
+        Contract contract1 = new Contract(
+            "C001", 1, 1,
+            LocalDate.now(),
+            LocalDate.now().plusMonths(6),
+            new BigDecimal("120.00")
+        );
+        contract1.setDepositAmount(new BigDecimal("120.00"));
+        contract1.setPaymentMethod("Bank Transfer");
+        addContract(contract1);
+
+        Contract contract2 = new Contract(
+            "C002", 2, 1,
+            LocalDate.now(),
+            LocalDate.now().plusMonths(6),
+            new BigDecimal("120.00")
+        );
+        contract2.setDepositAmount(new BigDecimal("120.00"));
+        contract2.setPaymentMethod("Cash");
+        addContract(contract2);
+
+        // Add sample fees
+        Fee fee1 = new Fee(
+            "F001", 1,
+            FeeType.ROOM_FEE,
+            new BigDecimal("120.00"),
+            LocalDate.now().plusMonths(1)
+        );
+        fee1.setPaymentMethod("Bank Transfer");
+        addFee(fee1);
+
+        Fee fee2 = new Fee(
+            "F002", 2,
+            FeeType.ROOM_FEE,
+            new BigDecimal("120.00"),
+            LocalDate.now().plusMonths(1)
+        );
+        fee2.setPaymentMethod("Cash");
+        addFee(fee2);
+
+        saveAllData();
+    }
+
+    // Update methods
     public boolean updateStudent(Student student) {
         if (student == null || !students.containsKey(student.getStudentId())) {
             return false;
@@ -191,60 +491,7 @@ public class DataStorage {
         return true;
     }
 
-    // Phương thức xóa dữ liệu
-    public boolean deleteStudent(int studentId) {
-        if (!students.containsKey(studentId)) {
-            return false;
-        }
-        try {
-            students.remove(studentId);
-            contracts.values().removeIf(contract -> contract.getStudentId() == studentId);
-            fees.values().removeIf(fee -> fee.getStudentId() == studentId);
-            saveAllData();
-            return true;
-        } catch (Exception e) {
-            showError("Xóa sinh viên", e);
-            return false;
-        }
-    }
-
-    public boolean deleteRoom(int roomId) {
-        if (!rooms.containsKey(roomId)) {
-            return false;
-        }
-        try {
-            students.values().stream()
-                    .filter(student -> student.getRoomId() == roomId)
-                    .forEach(student -> student.setRoomId(0));
-            rooms.remove(roomId);
-            contracts.values().removeIf(contract -> contract.getRoomId() == roomId);
-            saveAllData();
-            return true;
-        } catch (Exception e) {
-            showError("Xóa phòng", e);
-            return false;
-        }
-    }
-
-    public boolean deleteContract(int contractId) {
-        if (!contracts.containsKey(contractId)) {
-            return false;
-        }
-        contracts.remove(contractId);
-        saveContracts();
-        return true;
-    }
-
-    public boolean deleteFee(int feeId) {
-        if (!fees.containsKey(feeId)) {
-            return false;
-        }
-        fees.remove(feeId);
-        saveFees();
-        return true;
-    }
-
-    // Phương thức tìm kiếm
+    // Search methods
     public Student getStudentById(int studentId) {
         return students.get(studentId);
     }
@@ -261,7 +508,7 @@ public class DataStorage {
         return fees.get(feeId);
     }
 
-    // Phương thức quản lý phòng
+    // Room management methods
     public List<Room> getAvailableRooms() {
         return rooms.values().stream()
                 .filter(room -> "AVAILABLE".equals(room.getStatus()))
@@ -269,85 +516,68 @@ public class DataStorage {
     }
 
     public boolean assignStudentToRoom(int studentId, int roomId) {
-        Student student = students.get(studentId);
-        Room room = rooms.get(roomId);
-
-        if (student == null || room == null) {
+        Room room = getRoomById(roomId);
+        Student student = getStudentById(studentId);
+        
+        if (room == null || student == null) {
             return false;
         }
 
-        // Check if student already has a room
+        // Check if room has available beds
+        if (!room.hasAvailableBeds()) {
+            return false;
+        }
+
+        // If student is already in a room, remove them first
         if (student.getRoomId() != 0) {
-            return false;
+            removeStudentFromRoom(studentId);
         }
 
-        // Check student and room status
-        if (!"ACTIVE".equals(student.getStatus())) {
-            return false;
-        }
-
-        // Check if room is available for assignment
-        String roomStatus = room.getStatus();
-        if (!"AVAILABLE".equals(roomStatus) && !"OCCUPIED".equals(roomStatus)) {
-            return false;
-        }
-
-        // Check if room is full
-        if (isRoomFull(roomId)) {
-            return false;
-        }
-
-        // Assign student to room
+        // Update student's room assignment
         student.setRoomId(roomId);
         
-        // Update room status based on new occupancy
-        int currentOccupancy = getCurrentOccupancy(roomId);
-        if (currentOccupancy >= room.getBedCount()) {
-            room.setStatus("FULL");
-        } else if (currentOccupancy > 0) {
-            room.setStatus("OCCUPIED");
-        }
-
-        saveAllData();
-        return true;
+        // Update room occupancy
+        room.incrementOccupancy();
+        
+        return updateStudent(student) && updateRoom(room);
     }
 
     public boolean removeStudentFromRoom(int studentId) {
         Student student = getStudentById(studentId);
-        if (student != null && student.getRoomId() != 0) {
-            int roomId = student.getRoomId();
-            Room room = getRoomById(roomId);
-            student.setRoomId(0);
-            
-            // Update room status after removing student
-            if (room != null) {
-                int newOccupancy = getCurrentOccupancy(roomId);
-                if (newOccupancy == 0) {
-                    room.setStatus("AVAILABLE");
-                } else if (newOccupancy < room.getBedCount()) {
-                    room.setStatus("OCCUPIED");
-                }
-            }
-            
-            saveAllData(); // Save all changes
-            return true;
+        if (student == null || student.getRoomId() == 0) {
+            return false;
         }
-        return false;
+
+        Room room = getRoomById(student.getRoomId());
+        if (room == null) {
+            return false;
+        }
+
+        // Update room occupancy
+        room.decrementOccupancy();
+        
+        // Clear student's room assignment
+        student.setRoomId(0);
+        
+        return updateStudent(student) && updateRoom(room);
     }
 
     public int getCurrentOccupancy(int roomId) {
-        return (int) students.values().stream()
-                .filter(student -> student.getRoomId() == roomId && "ACTIVE".equals(student.getStatus()))
-                .count();
+        Room room = getRoomById(roomId);
+        return room != null ? room.getCurrentOccupancy() : 0;
     }
 
     public boolean isRoomFull(int roomId) {
-        Room room = rooms.get(roomId);
-        if (room == null) return true;
-        return getCurrentOccupancy(roomId) >= room.getBedCount();
+        Room room = getRoomById(roomId);
+        return room != null && !room.hasAvailableBeds();
     }
 
-    // Phương thức lưu và đọc dữ liệu
+    public int getAvailableBeds(int roomId) {
+        Room room = getRoomById(roomId);
+        return room != null ? room.getAvailableBeds() : 0;
+    }
+
+    // Data saving and loading methods
     public void saveAllData() {
         saveStudents();
         saveRooms();
@@ -355,20 +585,7 @@ public class DataStorage {
         saveFees();
     }
 
-    private void loadAllData() {
-        loadStudents();
-        loadRooms();
-        loadContracts();
-        loadFees();
-        
-        // Cập nhật các counter
-        studentIdCounter.set(students.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
-        roomIdCounter.set(rooms.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
-        contractIdCounter.set(contracts.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
-        feeIdCounter.set(fees.keySet().stream().mapToInt(Integer::intValue).max().orElse(0));
-    }
-
-    // Lưu sinh viên
+    // Save students
     private void saveStudents() {
         List<String> data = new ArrayList<>();
         for (Student student : students.values()) {
@@ -379,7 +596,7 @@ public class DataStorage {
                 student.getDateOfBirth(),
                 student.getGender(),
                 student.getPhoneNumber(),
-                student.getGmail(),
+                student.getEmail(),
                 student.getHometown(),
                 student.getRoomId(),
                 student.getStatus()
@@ -389,45 +606,17 @@ public class DataStorage {
         saveToFile(STUDENTS_FILE, data);
     }
 
-    // Đọc sinh viên
-    private void loadStudents() {
-        List<String> lines = loadFromFile(STUDENTS_FILE);
-        
-        for (String line : lines) {
-            try {
-                String[] parts = line.split(",");
-                if (parts.length == 10) {
-                    Student student = new Student(
-                        parts[1], // studentCode
-                        parts[2], // fullName
-                        LocalDate.parse(parts[3]), // dateOfBirth
-                        parts[4], // gender
-                        parts[5], // phoneNumber
-                        parts[6], // gmail
-                        parts[7]  // hometown
-                    );
-                    student.setStudentId(Integer.parseInt(parts[0]));
-                    student.setRoomId(Integer.parseInt(parts[8]));
-                    student.setStatus(parts[9]);
-                    students.put(student.getStudentId(), student);
-                }
-            } catch (Exception e) {
-                showError("Đọc dữ liệu sinh viên", e);
-            }
-        }
-    }
-
-    // Lưu phòng
+    // Save rooms
     private void saveRooms() {
         List<String> data = new ArrayList<>();
         for (Room room : rooms.values()) {
-            String line = String.format("%d,%s,%s,%d,%s,%s,%s",
+            String line = String.format("%d,%s,%s,%d,%.2f,%d,%s",
                 room.getRoomId(),
                 room.getRoomNumber(),
                 room.getRoomType(),
                 room.getBedCount(),
                 room.getRoomPrice(),
-                room.getAdditionalFee(),
+                room.getCurrentOccupancy(),
                 room.getStatus()
             );
             data.add(line);
@@ -435,32 +624,7 @@ public class DataStorage {
         saveToFile(ROOMS_FILE, data);
     }
 
-    // Đọc phòng
-    private void loadRooms() {
-        List<String> lines = loadFromFile(ROOMS_FILE);
-        
-        for (String line : lines) {
-            try {
-                String[] parts = line.split(",");
-                if (parts.length == 7) {
-                    Room room = new Room(
-                        parts[1], // roomNumber
-                        parts[2], // roomType
-                        Integer.parseInt(parts[3]), // bedCount
-                        new BigDecimal(parts[4]) // roomPrice
-                    );
-                    room.setRoomId(Integer.parseInt(parts[0]));
-                    room.setAdditionalFee(new BigDecimal(parts[5]));
-                    room.setStatus(parts[6]);
-                    rooms.put(room.getRoomId(), room);
-                }
-            } catch (Exception e) {
-                showError("Đọc dữ liệu phòng", e);
-            }
-        }
-    }
-
-    // Lưu hợp đồng
+    // Save contracts
     private void saveContracts() {
         List<String> data = new ArrayList<>();
         for (Contract contract : contracts.values()) {
@@ -481,35 +645,7 @@ public class DataStorage {
         saveToFile(CONTRACTS_FILE, data);
     }
 
-    // Đọc hợp đồng
-    private void loadContracts() {
-        List<String> lines = loadFromFile(CONTRACTS_FILE);
-        
-        for (String line : lines) {
-            try {
-                String[] parts = line.split(",");
-                if (parts.length == 10) {
-                    Contract contract = new Contract(
-                        parts[1], // contractCode
-                        Integer.parseInt(parts[2]), // studentId
-                        Integer.parseInt(parts[3]), // roomId
-                        LocalDate.parse(parts[4]), // startDate
-                        LocalDate.parse(parts[5]), // endDate
-                        new BigDecimal(parts[6]) // roomPrice
-                    );
-                    contract.setContractId(Integer.parseInt(parts[0]));
-                    contract.setPaymentMethod(parts[7]);
-                    contract.setContractStatus(parts[8]);
-                    contract.setDepositAmount(new BigDecimal(parts[9]));
-                    contracts.put(contract.getContractId(), contract);
-                }
-            } catch (Exception e) {
-                showError("Đọc dữ liệu hợp đồng", e);
-            }
-        }
-    }
-
-    // Lưu phí
+    // Save fees
     private void saveFees() {
         List<String> data = new ArrayList<>();
         for (Fee fee : fees.values()) {
@@ -531,80 +667,12 @@ public class DataStorage {
         saveToFile(FEES_FILE, data);
     }
 
-    // Đọc phí
-    private void loadFees() {
-        List<String> lines = loadFromFile(FEES_FILE);
-        
-        for (String line : lines) {
-            try {
-                String[] parts = line.split(",");
-                if (parts.length == 10) {
-                    Fee fee = new Fee(
-                        parts[1], // feeCode
-                        Integer.parseInt(parts[2]), // studentId
-                        FeeType.valueOf(parts[3]), // feeType
-                        new BigDecimal(parts[4]), // amount
-                        LocalDate.parse(parts[7]) // dueDate
-                    );
-                    fee.setFeeId(Integer.parseInt(parts[0]));
-                    fee.setPaymentMethod(parts[5]);
-                    fee.setPaymentStatus(parts[6]);
-                    
-                    if (!"null".equals(parts[8])) {
-                        fee.setPaymentDate(LocalDate.parse(parts[8]));
-                    }
-                    
-                    if (!"null".equals(parts[9])) {
-                        fee.setDescription(parts[9].replace(";;", ","));
-                    }
-                    
-                    fees.put(fee.getFeeId(), fee);
-                }
-            } catch (Exception e) {
-                showError("Đọc dữ liệu phí", e);
-            }
-        }
-    }
-
-    // Lưu file
-    private void saveToFile(String fileName, List<String> data) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_DIRECTORY + "/" + fileName))) {
-            for (String line : data) {
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            showError("Lưu file " + fileName, e);
-        }
-    }
-
-    // Đọc file
-    private List<String> loadFromFile(String fileName) {
-        List<String> data = new ArrayList<>();
-        File file = new File(DATA_DIRECTORY + "/" + fileName);
-        
-        if (!file.exists()) {
-            return data;
-        }
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                data.add(line);
-            }
-        } catch (IOException e) {
-            showError("Đọc file " + fileName, e);
-        }
-        
-        return data;
-    }
-
-    // Xác nhận thoát
+    // Exit confirmation
     public boolean showExitConfirmation() {
         int result = JOptionPane.showConfirmDialog(
             null,
-            "Bạn có muốn lưu dữ liệu trước khi thoát không?",
-            "Xác nhận thoát",
+            "Do you want to save data before exiting?",
+            "Exit Confirmation",
             JOptionPane.YES_NO_CANCEL_OPTION,
             JOptionPane.QUESTION_MESSAGE
         );
@@ -616,12 +684,6 @@ public class DataStorage {
             return true;
         }
         return false;
-    }
-
-    private void showError(String operation, Exception e) {
-        String message = String.format("Lỗi khi %s: %s", operation, e.getMessage());
-        System.err.println(message);
-        JOptionPane.showMessageDialog(null, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
     }
 
     public boolean terminateContract(int contractId) {
@@ -641,5 +703,71 @@ public class DataStorage {
             return updateFee(fee);
         }
         return false;
+    }
+
+    public int getNextReportId() {
+        return reportIdCounter.getAndIncrement();
+    }
+
+    public void addReport(Report report) {
+        reports.add(report);
+        saveReports();
+    }
+
+    public List<Report> getReports() {
+        return new ArrayList<>(reports);
+    }
+
+    private void saveReports() {
+        try {
+            File file = new File("data/reports.txt");
+            file.getParentFile().mkdirs();
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+                for (Report report : reports) {
+                    writer.println(String.format("%d|%s|%s|%s|%s|%s|%s",
+                        report.getId(),
+                        report.getTitle(),
+                        report.getDescription(),
+                        report.getType(),
+                        report.getGeneratedDate(),
+                        report.getFilePath(),
+                        report.getFormat()
+                    ));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadReports() {
+        try {
+            File file = new File("data/reports.txt");
+            if (!file.exists()) return;
+            
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("\\|");
+                    if (parts.length >= 7) {
+                        Report report = new Report(
+                            Integer.parseInt(parts[0]),
+                            parts[1],
+                            parts[2],
+                            parts[3]
+                        );
+                        report.setGeneratedDate(LocalDateTime.parse(parts[4]));
+                        report.setFilePath(parts[5]);
+                        report.setFormat(parts[6]);
+                        reports.add(report);
+                        
+                        // Update counter
+                        reportIdCounter.set(Math.max(reportIdCounter.get(), report.getId() + 1));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

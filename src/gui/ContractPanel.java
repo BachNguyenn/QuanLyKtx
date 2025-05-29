@@ -373,8 +373,8 @@ public class ContractPanel extends JPanel {
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titlePanel.add(titleLabel, BorderLayout.CENTER);
 
-        // Status panel
-        JPanel statusPanel = new JPanel();
+        // Status panel - now aligned to the right
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         statusPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createEmptyBorder(5, 0, 0, 0),
             BorderFactory.createCompoundBorder(
@@ -401,7 +401,7 @@ public class ContractPanel extends JPanel {
                 break;
         }
         statusPanel.add(statusLabel);
-        titlePanel.add(statusPanel, BorderLayout.SOUTH);
+        titlePanel.add(statusPanel, BorderLayout.EAST);
 
         // Content panel
         JPanel contentPanel = new JPanel();
