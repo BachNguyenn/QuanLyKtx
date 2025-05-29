@@ -2,14 +2,14 @@ package gui;
 
 import model.*;
 import util.DataStorage;
+import util.ReportExporter;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 public class StatisticsPanel extends JPanel {
     private final DataStorage dataStorage;
@@ -202,11 +202,69 @@ public class StatisticsPanel extends JPanel {
     }
     
     private void exportStatistics() {
-        // TODO: Implement export functionality
-        JOptionPane.showMessageDialog(this,
-            "Statistics export feature will be implemented in the next version.",
-            "Coming Soon",
-            JOptionPane.INFORMATION_MESSAGE);
+        try {
+            // Create report data
+            String[][] data = new String[financialTable.getRowCount() + occupancyTable.getRowCount() + 4][];
+            int rowIndex = 0;
+            
+            // Add summary data
+            data[rowIndex++] = new String[]{"Statistics Summary", periodCombo.getSelectedItem().toString()};
+            data[rowIndex++] = new String[]{"Total Students", totalStudentsValue.getText()};
+            data[rowIndex++] = new String[]{"Room Occupancy Rate", occupancyRateValue.getText()};
+            data[rowIndex++] = new String[]{"Active Students", activeStudentsValue.getText()};
+            data[rowIndex++] = new String[]{"Total Revenue", totalRevenueValue.getText()};
+            data[rowIndex++] = new String[]{}; // Empty row for spacing
+            
+            // Add financial table data
+            data[rowIndex++] = new String[]{"Financial Summary"};
+            data[rowIndex++] = new String[]{"Category", "Amount", "Percentage", "Status"};
+            for (int i = 0; i < financialTable.getRowCount(); i++) {
+                String[] row = new String[4];
+                for (int j = 0; j < 4; j++) {
+                    row[j] = financialTable.getValueAt(i, j).toString();
+                }
+                data[rowIndex++] = row;
+            }
+            data[rowIndex++] = new String[]{}; // Empty row for spacing
+            
+            // Add occupancy table data
+            data[rowIndex++] = new String[]{"Room Occupancy Details"};
+            data[rowIndex++] = new String[]{"Room Type", "Total Rooms", "Occupied", "Available", "Occupancy Rate"};
+            for (int i = 0; i < occupancyTable.getRowCount(); i++) {
+                String[] row = new String[5];
+                for (int j = 0; j < 5; j++) {
+                    row[j] = occupancyTable.getValueAt(i, j).toString();
+                }
+                data[rowIndex++] = row;
+            }
+            
+            // Create report
+            Report report = new Report();
+            report.setId(dataStorage.getNextReportId());
+            report.setTitle("Statistics Report - " + periodCombo.getSelectedItem());
+            report.setType("Statistics");
+            report.setGeneratedDate(LocalDateTime.now());
+            
+            // Export to Excel
+            String filePath = ReportExporter.exportToExcel(report, data, 
+                new String[]{"Category", "Value"});
+            
+            if (filePath != null) {
+                dataStorage.addReport(report);
+                JOptionPane.showMessageDialog(this,
+                    "Statistics exported successfully!\nSaved to: " + filePath,
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                throw new Exception("Failed to export statistics");
+            }
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error exporting statistics: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     public void refreshData() {

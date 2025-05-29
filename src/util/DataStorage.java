@@ -718,6 +718,30 @@ public class DataStorage {
         return new ArrayList<>(reports);
     }
 
+    public boolean deleteReport(int reportId) {
+        try {
+            boolean removed = reports.removeIf(report -> report.getId() == reportId);
+            if (removed) {
+                saveReports();
+                // Delete the actual file if it exists
+                Report report = reports.stream()
+                    .filter(r -> r.getId() == reportId)
+                    .findFirst()
+                    .orElse(null);
+                if (report != null && report.getFilePath() != null) {
+                    File file = new File(report.getFilePath());
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                }
+            }
+            return removed;
+        } catch (Exception e) {
+            showError("Deleting report", e);
+            return false;
+        }
+    }
+
     private void saveReports() {
         try {
             File file = new File("data/reports.txt");

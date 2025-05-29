@@ -1,0 +1,4 @@
+1,ST001,Nguyen Van A,2005-05-15,Male,0123456789,A@email.com,Ha Noi,1,ACTIVE
+2,ST002,Nguyen Van B,2004-09-20,Male,0987654321,B@email.com,Hai Phong,1,ACTIVE
+3,ST003,Nguyen Thi C,2005-04-25,Female,0916627268,C@email.com,Ho Chi Minh,0,ACTIVE
+4,ST004,Nguyen Thi D,2004-08-12,Female,0945123456,D@email.com,Nghe An,0,ACTIVE

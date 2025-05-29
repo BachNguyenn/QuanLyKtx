@@ -18,7 +18,7 @@ public class RoomPanel extends JPanel {
     private JComboBox<String> filterCombo;
 
     // Form fields
-    private JTextField roomNumberField, bedCountField, roomPriceField;
+    private JTextField roomNumberField, roomPriceField;
     private JComboBox<String> statusCombo;
     private JDialog formDialog;
     private Room currentRoom;

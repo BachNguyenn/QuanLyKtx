@@ -1,15 +1,21 @@
 package gui;
 
 import model.Report;
-import util.PDFExporter;
-import util.ExcelExporter;
+import model.Student;
+import model.Room;
+import model.Contract;
+import model.Fee;
+import model.FeeType;
+import util.ReportExporter;
 import util.DataStorage;
 
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReportPanel extends JPanel {
@@ -217,56 +223,55 @@ public class ReportPanel extends JPanel {
     }
 
     private void generateReport() {
+        String type = (String) reportTypeCombo.getSelectedItem();
         String title = titleField.getText().trim();
         String description = descriptionArea.getText().trim();
-        String type = (String) reportTypeCombo.getSelectedItem();
         String format = (String) formatCombo.getSelectedItem();
         
         if (title.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                "Please enter a report title.",
+                "Please enter a report title",
                 "Validation Error",
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        Report report = new Report(dataStorage.getNextReportId(), title, description, type);
-        report.setFormat(format);
-        report.setGeneratedDate(LocalDateTime.now());
         
-        try {
-            // Generate report content based on type
-            String[][] data = generateReportData(type);
-            String[] headers = getReportHeaders(type);
-            
-            // Export based on format
-            String filePath;
-            if ("PDF".equals(format)) {
-                filePath = PDFExporter.export(report, formatReportContent(data, headers));
-            } else {
-                filePath = ExcelExporter.export(report, data, headers);
-            }
-            
-            if (filePath != null) {
-                report.setFilePath(filePath);
-                dataStorage.addReport(report);
-                refreshData();
-                
-                JOptionPane.showMessageDialog(this,
-                    "Report generated successfully!\nSaved to: " + filePath,
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE);
-                
-                // Clear form
-                titleField.setText("");
-                descriptionArea.setText("");
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                "Error generating report: " + ex.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
+        Report report = new Report();
+        report.setId(dataStorage.getNextReportId());
+        report.setTitle(title);
+        report.setDescription(description);
+        report.setType(type);
+        report.setGeneratedDate(LocalDateTime.now());
+        report.setStatus("GENERATING");
+        
+        // Add to storage first to show in table
+        dataStorage.addReport(report);
+        refreshData();
+        
+        // Generate report content
+        String[][] data = generateReportData(type);
+        String[] headers = getReportHeaders(type);
+        
+        // Export based on format
+        String filePath;
+        if ("PDF".equals(format)) {
+            String content = formatReportContent(data, headers);
+            filePath = ReportExporter.exportToPDF(report, content);
+        } else {
+            filePath = ReportExporter.exportToExcel(report, data, headers);
         }
+        
+        if (filePath != null) {
+            report.setStatus("COMPLETED");
+        } else {
+            report.setStatus("FAILED");
+        }
+        
+        refreshData();
+        
+        // Clear form
+        titleField.setText("");
+        descriptionArea.setText("");
     }
 
     private void deleteSelectedReport() {
@@ -280,8 +285,18 @@ public class ReportPanel extends JPanel {
             
         if (confirm == JOptionPane.YES_OPTION) {
             int reportId = (Integer) tableModel.getValueAt(selectedRow, 0);
-            // TODO: Implement report deletion in DataStorage
-            refreshData();
+            if (dataStorage.deleteReport(reportId)) {
+                refreshData();
+                JOptionPane.showMessageDialog(this,
+                    "Report deleted successfully",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Failed to delete report",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -303,23 +318,132 @@ public class ReportPanel extends JPanel {
     }
 
     private String getReportFilePath(int row) {
-        // TODO: Implement getting file path from report
-        return "";
+        Report report = dataStorage.getReports().get(row);
+        return report.getFilePath();
     }
 
     private String[][] generateReportData(String type) {
-        // TODO: Implement data generation based on report type
-        return new String[][] {{"Sample", "Data"}};
+        List<String[]> data = new ArrayList<>();
+        
+        switch (type) {
+            case "Overview Report":
+                data.add(new String[]{"Total Students", String.valueOf(dataStorage.getAllStudents().size())});
+                data.add(new String[]{"Total Rooms", String.valueOf(dataStorage.getAllRooms().size())});
+                data.add(new String[]{"Active Contracts", String.valueOf(dataStorage.getAllContracts().stream()
+                    .filter(c -> "Active".equals(c.getStatus())).count())});
+                data.add(new String[]{"Total Fees", String.valueOf(dataStorage.getAllFees().size())});
+                break;
+                
+            case "Financial Report":
+                BigDecimal totalIncome = dataStorage.getAllFees().stream()
+                    .filter(f -> "Paid".equals(f.getPaymentStatus()))
+                    .map(Fee::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal pendingPayments = dataStorage.getAllFees().stream()
+                    .filter(f -> "Unpaid".equals(f.getPaymentStatus()))
+                    .map(Fee::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    
+                data.add(new String[]{"Total Income", totalIncome.toString()});
+                data.add(new String[]{"Pending Payments", pendingPayments.toString()});
+                data.add(new String[]{"Total Expected", totalIncome.add(pendingPayments).toString()});
+                break;
+                
+            case "Student List Report":
+                for (Student student : dataStorage.getAllStudents()) {
+                    data.add(new String[]{
+                        student.getStudentCode(),
+                        student.getFullName(),
+                        String.valueOf(student.getRoomId()),
+                        student.getStatus()
+                    });
+                }
+                break;
+                
+            case "Room Occupancy Report":
+                for (Room room : dataStorage.getAllRooms()) {
+                    data.add(new String[]{
+                        room.getRoomNumber(),
+                        String.valueOf(room.getCurrentOccupancy()),
+                        String.valueOf(room.getBedCount()),
+                        String.format("%.2f%%", (room.getCurrentOccupancy() * 100.0 / room.getBedCount())),
+                        room.getStatus()
+                    });
+                }
+                break;
+                
+            case "Contract Status Report":
+                for (Contract contract : dataStorage.getAllContracts()) {
+                    Student student = dataStorage.getStudentById(contract.getStudentId());
+                    data.add(new String[]{
+                        contract.getContractCode(),
+                        student != null ? student.getFullName() : "Unknown",
+                        contract.getStartDate().toString(),
+                        contract.getEndDate().toString(),
+                        contract.getContractStatus()
+                    });
+                }
+                break;
+                
+            case "Fee Collection Report":
+                for (Fee fee : dataStorage.getAllFees()) {
+                    Student student = dataStorage.getStudentById(fee.getStudentId());
+                    data.add(new String[]{
+                        fee.getFeeCode(),
+                        student != null ? student.getFullName() : "Unknown",
+                        fee.getFeeType().toString(),
+                        fee.getAmount().toString(),
+                        fee.getDueDate().toString(),
+                        fee.getPaymentStatus()
+                    });
+                }
+                break;
+        }
+        
+        return data.toArray(new String[0][]);
     }
 
     private String[] getReportHeaders(String type) {
-        // TODO: Return appropriate headers based on report type
-        return new String[] {"Column1", "Column2"};
+        switch (type) {
+            case "Overview Report":
+                return new String[]{"Metric", "Value"};
+                
+            case "Financial Report":
+                return new String[]{"Category", "Amount"};
+                
+            case "Student List Report":
+                return new String[]{"Student Code", "Full Name", "Room ID", "Status"};
+                
+            case "Room Occupancy Report":
+                return new String[]{"Room Number", "Current Occupancy", "Total Beds", "Occupancy Rate", "Status"};
+                
+            case "Contract Status Report":
+                return new String[]{"Contract Code", "Student Name", "Start Date", "End Date", "Status"};
+                
+            case "Fee Collection Report":
+                return new String[]{"Fee Code", "Student Name", "Fee Type", "Amount", "Due Date", "Status"};
+                
+            default:
+                return new String[]{"Column1", "Column2"};
+        }
     }
 
     private String formatReportContent(String[][] data, String[] headers) {
         StringBuilder content = new StringBuilder();
-        // TODO: Format content for PDF
+        
+        // Add title
+        content.append("Report: ").append(reportTypeCombo.getSelectedItem()).append("\n");
+        content.append("Generated: ").append(LocalDateTime.now().format(DATE_FORMATTER)).append("\n\n");
+        
+        // Add headers
+        content.append(String.join("\t", headers)).append("\n");
+        content.append("-".repeat(80)).append("\n");
+        
+        // Add data
+        for (String[] row : data) {
+            content.append(String.join("\t", row)).append("\n");
+        }
+        
         return content.toString();
     }
 
@@ -335,7 +459,7 @@ public class ReportPanel extends JPanel {
                     report.getType(),
                     report.getGeneratedDate().format(DATE_FORMATTER),
                     report.getFormat(),
-                    "COMPLETED" // TODO: Implement actual status tracking
+                    report.getStatus()
                 };
                 tableModel.addRow(rowData);
             }

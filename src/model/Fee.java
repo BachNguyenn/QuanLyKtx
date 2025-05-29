@@ -14,6 +14,7 @@ public class Fee {
     private LocalDate dueDate;
     private LocalDate paymentDate;
     private String description;
+    private int contractId;
 
     
     public Fee(String feeCode, int studentId, FeeType feeType, BigDecimal amount, LocalDate dueDate) {
@@ -24,6 +25,7 @@ public class Fee {
         this.dueDate = dueDate;
         this.paymentMethod = "CASH";
         this.paymentStatus = "PENDING";
+        this.contractId = 0; // Default value
     }
     
     // Getters and Setters
@@ -66,8 +68,11 @@ public class Fee {
     }
 
     public int getContractId() {
-        // TODO: Implement this method to return actual contract ID if needed
-        return 0;
+        return contractId;
+    }
+
+    public void setContractId(int contractId) {
+        this.contractId = contractId;
     }
     
     @Override
