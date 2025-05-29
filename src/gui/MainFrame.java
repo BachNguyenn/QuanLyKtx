@@ -228,9 +228,9 @@ public class MainFrame extends JFrame {
 
     private void showAboutDialog() {
         JOptionPane.showMessageDialog(this,
-            "Student Housing Management System\nVersion 1.0\n\n" +
-            "Developed by Group 9\n" +
-            "© 2024 All rights reserved",
+            "Student Dormitory Management System\nVersion 1.0\n\n" +
+            "Developed by Nguyen Tung Bach\n" +
+            "PHENIKAA University of Technology",
             "About",
             JOptionPane.INFORMATION_MESSAGE);
     }

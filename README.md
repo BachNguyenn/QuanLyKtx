@@ -111,15 +111,6 @@
   - Thread-safe với ConcurrentHashMap
   - Atomic counters cho ID
   - Lưu trữ và đọc dữ liệu từ file
-- **ValidationUtils**:
-  - Kiểm tra định dạng dữ liệu
-  - Validate thông tin nhập vào
-  - Xử lý các ràng buộc dữ liệu
-- **ReportExporter**:
-  - Xuất báo cáo đa định dạng (PDF, Excel)
-  - Tùy chỉnh định dạng và layout
-  - Quản lý thư mục và tên file tự động
-  - Hỗ trợ bảng, văn bản và hình ảnh
 
 ## 📁 Cấu Trúc Dự Án
 ```
@@ -143,9 +134,7 @@ project/
 │   │   ├── ReportPanel.java         # Giao diện báo cáo
 │   │   └── StatisticsPanel.java     # Giao diện thống kê
 │   └── 📂 util/
-│       ├── DataStorage.java         # Lưu trữ dữ liệu
-│       ├── ValidationUtils.java     # Kiểm tra dữ liệu
-│       └── ReportExporter.java     # Xuất báo cáo đa định dạng
+│       └── DataStorage.java         # Lưu trữ dữ liệu
 ├── 📂 test/
 │   ├── 📂 model/
 │   │   ├── StudentTest.java

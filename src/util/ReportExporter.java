@@ -76,4 +76,4 @@ public class ReportExporter {
         String sanitizedTitle = report.getTitle().replaceAll("[^a-zA-Z0-9]", "_");
         return String.format("%s_%s.%s", sanitizedTitle, timestamp, format.getExtension());
     }
-} 
+}

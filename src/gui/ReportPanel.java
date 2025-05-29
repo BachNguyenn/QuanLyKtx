@@ -459,7 +459,7 @@ public class ReportPanel extends JPanel {
                     report.getType(),
                     report.getGeneratedDate().format(DATE_FORMATTER),
                     report.getFormat(),
-                    report.getStatus()
+                    "COMPLETED" // TODO: Implement actual status tracking
                 };
                 tableModel.addRow(rowData);
             }

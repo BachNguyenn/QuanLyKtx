@@ -25,7 +25,7 @@ public class Fee {
         this.dueDate = dueDate;
         this.paymentMethod = "CASH";
         this.paymentStatus = "PENDING";
-        this.contractId = 0; // Default value
+        this.contractId = 0;
     }
     
     // Getters and Setters

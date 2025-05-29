@@ -234,7 +234,7 @@ public class FeePanel extends JPanel {
                 boolean canMarkPaid = false;
                 if (hasSelection) {
                     int selectedRow = feeTable.getSelectedRow();
-                    String status = (String) tableModel.getValueAt(selectedRow, 7); // Updated column index
+                    String status = (String) tableModel.getValueAt(selectedRow, 6); // Payment Status column
                     canMarkPaid = "PENDING".equals(status) || "OVERDUE".equals(status);
                 }
                 markPaidButton.setEnabled(canMarkPaid);
@@ -255,8 +255,8 @@ public class FeePanel extends JPanel {
                     fee.getAmount(),
                     fee.getPaymentMethod(),
                     fee.getPaymentStatus(),
-                    fee.getDueDate(),
-                    fee.getPaymentDate(),
+                    fee.getDueDate() != null ? fee.getDueDate().format(DATE_FORMATTER) : "",
+                    fee.getPaymentDate() != null ? fee.getPaymentDate().format(DATE_FORMATTER) : "",
                     fee.getDescription()
             };
             tableModel.addRow(rowData);
@@ -298,8 +298,8 @@ public class FeePanel extends JPanel {
                         fee.getAmount(),
                         fee.getPaymentMethod(),
                         fee.getPaymentStatus(),
-                        fee.getDueDate(),
-                        fee.getPaymentDate(),
+                        fee.getDueDate() != null ? fee.getDueDate().format(DATE_FORMATTER) : "",
+                        fee.getPaymentDate() != null ? fee.getPaymentDate().format(DATE_FORMATTER) : "",
                         fee.getDescription()
                 };
                 tableModel.addRow(rowData);
